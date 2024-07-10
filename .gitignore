@@ -1,3 +1,8 @@
+# pdf folder
+/PDF
+
+# downloaed fiels 
+/DwnFiles
 # History files
 .Rhistory
 .Rapp.history
