@@ -2,6 +2,7 @@
 # Folders for large downloaed files 
 DownloadedFiles/
 DwnFiles/
+test/
 
 # History files
 .Rhistory
