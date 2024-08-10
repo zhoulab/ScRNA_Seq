@@ -2,18 +2,217 @@
 title: "R Notebook for GSE107451 57k dataset analysis"
 output: NA
 ---
+## this is the R script for the analysis of the head ScRNA-Seq data of the GSE107451 
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+## Objectives: 
+### 1. Monitor the expression pattern of the inflammaging markers across different cell types (clusters) and ages.
+### 2. Identify which cell type(s) account for the inflammaging pattern observed in whole head sampesl.
+#### 2.1 Calculate aggregated expression for individual cluster - function to extract expression of a gene in a particular cluster.
+#### 2.2 Identify which cell cluster demonstrate inflammaging pattern.
+#### 2.3 Evaluate how each cell type contributes to the inflammaging pattern observed in whole head samples.
+### 3. Identify if the percentage of cells expressing a certain III marker is increased across ages
+### 4. Identify if there is a change in the percentage of plasmatocytes in different strains across ages
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+## Dataset
+### GSE107451 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE107451 
+### we download the GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv.tar.gz 
+### we used Author's annotation as metadata of this analysis: GSE107451_DGRP-551_w1118_WholeBrain_57k_Metadata.tsv.gz
+### which was based on analysis down by the authors of the paper 
+### A Single-Cell Transcriptome Atlas of the Aging Drosophila Brain. 
+###  - Cell 2018 Aug 9;174(4):982-998.e20. PMID: 29909982
+###  - https://pubmed.ncbi.nlm.nih.gov/29909982/
+### For analysis of scRNAseq data, Seurat V5 is used. For more information, check https://satijalab.org/seurat/, and https://satijalab.org/seurat/articles/install.html for specific instruction on installation.
+
+
+## Functions written, primarily used for analyzing this dataset
+###count_cells_subset
+####a function to see number of cells in different Strains, Sex at different Ages
+#### Example usage:
+#### To get the number of cells for a specific strain, sex, age, and cell cluster:
+count_cells_subset(seurat_obj=ALL_HEAD_57k3,
+                                  strain = "DGRP-551",
+                                  sex = "female",
+                                  age = "50",
+                                  cell_cluster = "Plasmatocytes")
+###calculate_gene_expression_percentage
+#### calculate the persentage of cells expressing different genes within a subset of a seurat object of a certain Strain, Sex, Cluster, and Age 
+#### Example usage:
+calculate_gene_expression_percentage(
+  seurat_obj=ALL_HEAD_57k3,
+  genes=III_Marker_Genes, 
+  strain = "DGRP-551", 
+  Sex = "female", 
+  cluster = "Plasmatocytes", 
+  ages = c(3,6,9,15,30,50)
+  )
+###calculate_cell_percentage
+#### A function to determine the persentage of plasmatocytes of a specific Strain, sex at different ages
+#### Example usage
+calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
+                          cell_types = c("Plasmatocytes"),
+                          strains =c("DGRP-551", "w1118"),
+                          sexes = c("female", "male")
+                          )
+###plot_percentage
+####Barplot of percentage of Plasmatocytes across different ages
+#### Example usage
+#### Barplot of DGRP-551_female_Plasmatocytes
+plot_percentage(calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
+                                          cell_types = c("Plasmatocytes"),
+                                          strains =c("DGRP-551", "w1118"),
+                                          sexes = c("female", "male")
+                                          ),
+                Strain = "DGRP-551",
+                Cell_type = "Plasmatocytes", 
+                Sex = "female"
+                )
+###make_heatmap
+####heatmap of pseudo bulk expression to compare with our BulkRNAseq
+####Example usage
+####count_DGRP551_female
+make_heatmap(EXPR_OBJ = count_DGRP551_female[,-c(1:2)],
+             GENELIST = III_Marker_Genes,
+             TITLE = "DGRP551_female"
+             )
+###heatmap_specific_cluster
+####a function to plot heat map of genes at different Age in a specific cell cluster
+####Example Usage
+####Plasmatocytes_DGRP-551_female
+heatmap_specific_cluster(EXPR_COUNT=count_Strain_Sex_Cellcluster_Age,
+                         GENELIST=III_Marker_Genes,
+                         STRAIN = "DGRP-551",
+                         SEX = "female",
+                         CLUSTER_NAME="Plasmatocytes",
+                         AGES = c("3","6","9","15","30","50"),
+                         TITLE = "III_Markers in Plasmatocytes DGRP-551 female"
+                         )
+
 
 ```{r}
-plot(cars) 
+
+
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+```{r}
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
 
