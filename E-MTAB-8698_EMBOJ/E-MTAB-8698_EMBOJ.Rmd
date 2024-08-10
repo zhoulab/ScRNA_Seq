@@ -2,11 +2,21 @@
 title: "scRNAseq analysis of E-MTAB-8698_EMBOJ"
 output: html_notebook
 ---
-refer to:
+#refer to:
 Cattenoz PB, Sakr R, Pavlidaki A, Delaporte C, Riba A, Molina N, Hariharan N, Mukherjee T, Giangrande A. Temporal specificity and heterogeneity of Drosophila immune cells. EMBO J. 2020 Jun 17;39(12):e104486. doi: 10.15252/embj.2020104486. Epub 2020 Mar 12. PMID: 32162708; PMCID: PMC7298292.
 
-```{r}
+#objective:
+## 1. Try to reproduce Dimplot of author's Fig. 2A in the paper
+## 2. See in which kind of cells are III markers expressed in hemocytes
 
+#Important files***:
+## 1. E-MTAB-8698.sdrf.txt meta information for seurat object
+## 2. filtered_feature_bc_matrix_NI_RRCZ22, unzipped folder that contains control (Non_Infected) group of hemocytes scRNAseq data
+*** These files can be downloaded at https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E%E2%80%90MTAB%E2%80%908698
+
+#######################################
+set wk dir and library package
+```{r}
 setwd(getwd())
 
 library(Seurat)
@@ -23,12 +33,9 @@ library(patchwork)
 library(clustree)
 library(remotes)
 
-
-
-
 ```
 
-
+#import important files and create seurat object
 ```{r}
 
 meta_info <- data.table::fread("./E-MTAB-8698/E-MTAB-8698.sdrf.txt")
@@ -41,6 +48,7 @@ NI <- CreateSeuratObject(counts = NI,
                            min.features = 0)
 ```
 
+#quality control
 ```{r}
 # 
 # n.Feature.min <- 2  
@@ -55,6 +63,7 @@ cat("Before filter :",nrow(NI@meta.data),"cells\n")
 
 ```
 
+#run standard seurat pipeline
 ```{r}
 
 # run standard anlaysis workflow
@@ -82,7 +91,7 @@ NI2 <- FindClusters(NI2, resolution = 0.8, cluster.name = "NI_clusters")
 
 ```
 
-
+#Run UMAP and tSNE dim reduction
 ```{r}
 #Umap
 NI3 <- RunUMAP(NI2, dims = 1:20, reduction = "pca", reduction.name = "UMAP_NI",verbose=F)
@@ -112,13 +121,13 @@ DimPlot(NI3, reduction = "tSNE_NI")
 #For clarification, refer to https://www.biostars.org/p/409790/
 ```{r}
 
-
 test <- NI3
 
 all.markers <- FindAllMarkers(test, test.use = 'wilcox', only.pos = TRUE, min.pct = 0.10, logfc.threshold = 0.25)
 
 ```
 
+#generate dotplot to compare with author's Fig 2.D
 ```{r}
 
 marker.sig <- all.markers %>%
@@ -159,7 +168,7 @@ View(all_markers_dotplot$data)
 ```
 
 
-#feature plot of specific genes (for e.g. SPH93 in ScribKD and Ctrl)
+#feature plot of specific genes (for e.g. SPH93 in Ctrl)
 ```{r}
 #split.by = "groups",
 # FeaturePlot(test, features = c("SPH93","CecA1"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
@@ -226,59 +235,8 @@ View(known_markers_dotplot$data)
 
 ```
 
-importing author's annotation
+#change cluster ID to cell type
 ```{r}
-
-Authors_markers <- openxlsx::read.xlsx("Authors_markers.xlsx",colNames = T,sheet = 2)
-
-colnames(Authors_markers) <- Authors_markers[2,]
-
-Authors_markers <- Authors_markers[-c(1:2),]
-
-
-
-
-#cell types
-Authors_celltypes <- unique(Authors_markers$cluster)
-
-our_celltypes <- as.character(unique(all.markers$cluster))
-
-Authors_celltypes
-our_celltypes
-
-# 
-# our_celltypes_new <- our_celltypes
-# 
-# 
-# for (i in 1:length(Authors_celltypes)) {
-#   markers_common <- 
-#     intersect(marker.sig$gene[which(marker.sig$cluster==our_celltypes[3])],
-#         Authors_markers$"Official gene symbol"[which(Authors_markers$cluster==Authors_celltypes[i])]);
-#   print(markers_common)
-# }
-
-# 
-# our_celltypes_new[1] <- Authors_celltypes[14]
-# our_celltypes_new[2] <- Authors_celltypes[7]
-# our_celltypes_new[3] <- Authors_celltypes[14]
-# our_celltypes_new[4] <- Authors_celltypes[]
-# our_celltypes_new[5] <- Authors_celltypes[]
-# our_celltypes_new[6] <- Authors_celltypes[]
-# our_celltypes_new[7] <- Authors_celltypes[]
-# our_celltypes_new[8] <- Authors_celltypes[]
-# our_celltypes_new[9] <- Authors_celltypes[]
-# our_celltypes_new[10] <- Authors_celltypes[]
-# our_celltypes_new[11] <- Authors_celltypes[]
-# our_celltypes_new[12] <- Authors_celltypes[1]
-# our_celltypes_new[13] <- Authors_celltypes[]
-# our_celltypes_new[14] <- Authors_celltypes[]
-# 
-# 
-# our_celltypes_new
-
-
-
-
 
 cluster2celltype <- c("0"="PL-0",
                       "1"="PL-1",
@@ -296,24 +254,6 @@ cluster2celltype <- c("0"="PL-0",
                       "13"="PL-ImpL2")
 
 test[['cell_type']] <- unname(cluster2celltype[test@meta.data$seurat_clusters])
-
-
-#plot order of clusters (to match authors)
-# test$cell_type<- factor(test$cell_type,levels = c(
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",
-#   "",))
 
 ```
 
@@ -388,7 +328,7 @@ FeaturePlot(test, features = c("robo2"),  cols = c("lightblue2","darkred"), redu
 
 
 
-#feature plot of genes of lab interest
+#feature plot of genes of interest
 ```{r}
 
 #UMAP
@@ -431,7 +371,7 @@ FeaturePlot(test, features = c("Mtk","IM18"),  cols = c("lightblue2","darkred"),
 
 ```
 
-plot dotplot, heatmap for named clusters
+#plot dotplot, heatmap for named clusters
 ```{r}
 
 
@@ -453,18 +393,6 @@ DoHeatmap(test, features = topmarker$gene,size = 2,group.by = "cell_type") +
     theme(legend.position = "none", 
           axis.text.y = element_text(size = 6))
 dev.off()
-
-```
-```{r}
-
-library(grid)
-
-DimPlot(test,reduction = "tSNE_NI",group.by = "cell_type")
-
-rasterImage(
-  FeaturePlot(test, features = c("CecA1"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
-  )
-
 
 ```
 
