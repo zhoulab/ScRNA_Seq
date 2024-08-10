@@ -1,0 +1,470 @@
+---
+title: "scRNAseq analysis of E-MTAB-8698_EMBOJ"
+output: html_notebook
+---
+refer to:
+Cattenoz PB, Sakr R, Pavlidaki A, Delaporte C, Riba A, Molina N, Hariharan N, Mukherjee T, Giangrande A. Temporal specificity and heterogeneity of Drosophila immune cells. EMBO J. 2020 Jun 17;39(12):e104486. doi: 10.15252/embj.2020104486. Epub 2020 Mar 12. PMID: 32162708; PMCID: PMC7298292.
+
+```{r}
+
+setwd(getwd())
+
+library(Seurat)
+library(ggplot2)
+library(cowplot)
+library(Matrix)
+library(dplyr)
+library(ggsci)
+library(data.table)
+library(monocle)
+library(DoubletFinder)
+library(tidyverse)
+library(patchwork)
+library(clustree)
+library(remotes)
+
+
+
+
+```
+
+
+```{r}
+
+meta_info <- data.table::fread("./E-MTAB-8698/E-MTAB-8698.sdrf.txt")
+
+NI <- Seurat::Read10X("/Users/tangweihao/Desktop/summer2024_research/II_cancer2024summer/scRNAseq/E-MTAB-8698_EMBOJ/E-MTAB-8698/filtered_feature_bc_matrix_NI_RRCZ22")
+
+NI <- CreateSeuratObject(counts = NI,
+                           project = "Non_Infected_RRCZ22", 
+                           min.cells = 0,  
+                           min.features = 0)
+```
+
+```{r}
+# 
+# n.Feature.min <- 2  
+# n.Feature.max <- 20000  
+# n.Count.min <-2 
+# n.Mt <- 5  
+# n.Rb <- 5 
+
+cat("Before filter :",nrow(NI@meta.data),"cells\n")
+
+
+
+```
+
+```{r}
+
+# run standard anlaysis workflow
+NI2 <- NormalizeData(NI)
+NI2 <- FindVariableFeatures(NI2)
+NI2 <- ScaleData(NI2)
+
+min(nrow(NI2), ncol(NI2))
+NI2 <- RunPCA(NI2,npcs = 50,verbose = F)
+
+#see turning point
+ElbowPlot(NI2, ndims=30, reduction="pca")
+
+
+NI2 <- FindNeighbors(NI2, dims = 1:20, reduction = "pca", verbose=TRUE)
+
+NI2 <- FindClusters(NI2, resolution = 1, cluster.name = "NI_clusters")
+
+#see resolution
+pdf(paste0("./cluster_tree.pdf"),width = 15,height = 10)
+clustree(FindClusters(NI2, resolution = seq(0.6,1.2,by=0.05)))
+dev.off()
+
+NI2 <- FindClusters(NI2, resolution = 0.8, cluster.name = "NI_clusters")
+
+```
+
+
+```{r}
+#Umap
+NI3 <- RunUMAP(NI2, dims = 1:20, reduction = "pca", reduction.name = "UMAP_NI",verbose=F)
+
+colnames(NI3@reductions[["UMAP_NI"]]@cell.embeddings) <- c('UMAP_1', 'UMAP_2')
+
+
+DimPlot(NI3, reduction = "UMAP_NI", group.by = "orig.ident")
+
+DimPlot(NI3, reduction = "UMAP_NI")
+
+
+
+
+#tsne
+NI3 <- RunTSNE(NI3, dims = 1:20, reduction = "pca", reduction.name = "tSNE_NI",verbose=F)
+
+colnames(NI3@reductions[["tSNE_NI"]]@cell.embeddings) <- c('tSNE_1', 'tSNE_2')
+
+
+DimPlot(NI3, reduction = "tSNE_NI", group.by = "orig.ident")
+
+DimPlot(NI3, reduction = "tSNE_NI")
+```
+
+#find marker genes
+#For clarification, refer to https://www.biostars.org/p/409790/
+```{r}
+
+
+test <- NI3
+
+all.markers <- FindAllMarkers(test, test.use = 'wilcox', only.pos = TRUE, min.pct = 0.10, logfc.threshold = 0.25)
+
+```
+
+```{r}
+
+marker.sig <- all.markers %>%
+    filter(p_val_adj < 0.05)
+
+topmarker <- marker.sig %>% group_by(cluster) %>% 
+    top_n(n = 5, wt = avg_log2FC)
+
+DoHeatmap(test, features = topmarker$gene,size = 2) +
+    theme(legend.position = "none", 
+          axis.text.y = element_text(size = 6))
+
+DotPlot(test, features = unique(topmarker$gene))
+
+
+# +
+#     RotatedAxis()
+
+pdf(paste0("./NI_DotPlot.pdf"),width = 15,height = 10)
+DotPlot(test, features = unique(topmarker$gene))+
+     theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))
+dev.off()
+
+
+
+pdf(paste0("./NI_Heatmap.pdf"),width = 15,height = 10)
+DoHeatmap(test, features = topmarker$gene,size = 2) +
+    theme(legend.position = "none", 
+          axis.text.y = element_text(size = 6))
+dev.off()
+
+
+all_markers_dotplot <- DotPlot(test, features = unique(topmarker$gene))+
+     theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))
+
+View(all_markers_dotplot$data)
+
+```
+
+
+#feature plot of specific genes (for e.g. SPH93 in ScribKD and Ctrl)
+```{r}
+#split.by = "groups",
+# FeaturePlot(test, features = c("SPH93","CecA1"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+# 
+# FeaturePlot(test, features = c("Rel","AttA"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+#  
+
+
+
+pdf(paste0("./NI_UMAP_DimPlot.pdf"),width = 15,height = 10)
+DimPlot(test,reduction = "UMAP_NI",)
+dev.off()
+
+
+
+pdf(paste0("./NI_tSNE_DimPlot.pdf"),width = 15,height = 10)
+DimPlot(test,reduction = "tSNE_NI")
+dev.off()
+```
+
+
+#manual cell-cluster annotation based on Figure 2 D of https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7298292/figure/embj2020104486-fig-0002/
+
+bsed on appendix figure S5
+```{r}
+
+#13# tau NLaz #PL-lmpl2#
+
+#10# CecA1, CecA2, CecC #PL-AMP#
+
+#checked#11# PPO1 PPO2 #CC#
+
+#7# Hml Nplp2 Ppn #PL-prolif#
+
+#2#  robo2 Ten-a #PL-robo2#
+
+#8# #Inos #PL-Inos#
+
+#12# E(spl)mbeta???HLH #PL-3#
+
+#9# Lsp1alpha Lsp1beta Obp99b#PL_Lsp#
+
+##  ##
+
+```
+
+
+#make a dotplot that includes just marker genes that are known to be specific to the crystal cells, to
+the lamellocytes or to plasmatocytes , for each cluster
+based on Appendix Figure S4
+```{r}
+
+
+pdf(paste0("./NI_DotPlot_Author_specific_markers.pdf"),width = 15,height = 10)
+DotPlot(test, features = c("lz","peb","PPO2","PPO1","sn","Pxn","Hml","eater","NimC1","crq","He","srp"))+
+     theme(axis.text.x = element_text(angle = 90, size = 16), legend.text = element_text(size = 12), legend.title = element_text(size = 12))
+dev.off()
+
+
+known_markers_dotplot <- DotPlot(test, features = c("lz","peb","PPO2","PPO1","sn","Pxn","Hml","eater","NimC1","crq","He","srp"))+
+     theme(axis.text.x = element_text(angle = 90, size = 16), legend.text = element_text(size = 12), legend.title = element_text(size = 12))
+
+View(known_markers_dotplot$data)
+
+```
+
+importing author's annotation
+```{r}
+
+Authors_markers <- openxlsx::read.xlsx("Authors_markers.xlsx",colNames = T,sheet = 2)
+
+colnames(Authors_markers) <- Authors_markers[2,]
+
+Authors_markers <- Authors_markers[-c(1:2),]
+
+
+
+
+#cell types
+Authors_celltypes <- unique(Authors_markers$cluster)
+
+our_celltypes <- as.character(unique(all.markers$cluster))
+
+Authors_celltypes
+our_celltypes
+
+# 
+# our_celltypes_new <- our_celltypes
+# 
+# 
+# for (i in 1:length(Authors_celltypes)) {
+#   markers_common <- 
+#     intersect(marker.sig$gene[which(marker.sig$cluster==our_celltypes[3])],
+#         Authors_markers$"Official gene symbol"[which(Authors_markers$cluster==Authors_celltypes[i])]);
+#   print(markers_common)
+# }
+
+# 
+# our_celltypes_new[1] <- Authors_celltypes[14]
+# our_celltypes_new[2] <- Authors_celltypes[7]
+# our_celltypes_new[3] <- Authors_celltypes[14]
+# our_celltypes_new[4] <- Authors_celltypes[]
+# our_celltypes_new[5] <- Authors_celltypes[]
+# our_celltypes_new[6] <- Authors_celltypes[]
+# our_celltypes_new[7] <- Authors_celltypes[]
+# our_celltypes_new[8] <- Authors_celltypes[]
+# our_celltypes_new[9] <- Authors_celltypes[]
+# our_celltypes_new[10] <- Authors_celltypes[]
+# our_celltypes_new[11] <- Authors_celltypes[]
+# our_celltypes_new[12] <- Authors_celltypes[1]
+# our_celltypes_new[13] <- Authors_celltypes[]
+# our_celltypes_new[14] <- Authors_celltypes[]
+# 
+# 
+# our_celltypes_new
+
+
+
+
+
+cluster2celltype <- c("0"="PL-0",
+                      "1"="PL-1",
+                      "2"="PL-robo2", 
+                      "3"="PL-Rel", 
+                      "4"="PL-Inos",
+                      "5"="PL-3",
+                      "6"="PL-Pcd",
+                      "7"="PL-vir1", 
+                      "8"="PL-prolif",
+                      "9"="PL-Lsp",
+                      "10"="CC",
+                      "11"="PL-AMP",
+                      "12"="PL-2",
+                      "13"="PL-ImpL2")
+
+test[['cell_type']] <- unname(cluster2celltype[test@meta.data$seurat_clusters])
+
+
+#plot order of clusters (to match authors)
+# test$cell_type<- factor(test$cell_type,levels = c(
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",
+#   "",))
+
+```
+
+
+
+#checking if there is swap comparing to authors' data
+```{r}
+
+DimPlot(test,reduction = "UMAP_NI",group.by = "cell_type")
+DimPlot(test,reduction = "tSNE_NI",group.by = "cell_type")
+
+
+pdf(paste0("./DimPlot_UMAP_NI_clusterNamed.pdf"),width = 15,height = 10)
+DimPlot(test,reduction = "UMAP_NI",group.by = "cell_type",
+        label = TRUE,
+        label.size = 3,
+        repel = TRUE)
+dev.off()
+
+
+pdf(paste0("./DimPlot_tSNE_NI_clusterNamed.pdf"),width = 15,height = 10)
+DimPlot(test,reduction = "tSNE_NI",group.by = "cell_type",
+        label = TRUE,
+        label.size = 3,
+        repel = TRUE)
+dev.off()
+
+
+#Umap feature plot
+FeaturePlot(test, features = c("Pcd"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Inos"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("ImpL2"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Hml"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+
+
+FeaturePlot(test, features = c("vir-1"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Rel"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("sn"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("robo2"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+
+#tSNE feature plot
+
+FeaturePlot(test, features = c("Pcd"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Inos"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("ImpL2"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Hml"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+
+
+FeaturePlot(test, features = c("vir-1"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Rel"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("sn"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("robo2"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+```
+
+
+
+
+
+#feature plot of genes of lab interest
+```{r}
+
+#UMAP
+DimPlot(test,reduction = "UMAP_NI",group.by = "cell_type")
+
+FeaturePlot(test, features = c("SPH93","CecA1"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Rel","AttA"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("AttB","edin"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+FeaturePlot(test, features = c("CecA2","Abl"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("AttC","DptA"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("DptB","Dro"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+
+FeaturePlot(test, features = c("Mtk","IM18"),  cols = c("lightblue2","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+
+
+#tSNE
+
+
+DimPlot(test,reduction = "tSNE_NI",group.by = "cell_type")
+
+FeaturePlot(test, features = c("SPH93","CecA1"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("Rel","AttA"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("AttB","edin"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+FeaturePlot(test, features = c("CecA2","Abl"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("AttC","DptA"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+FeaturePlot(test, features = c("DptB","Dro"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+
+FeaturePlot(test, features = c("Mtk","IM18"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+
+
+```
+
+plot dotplot, heatmap for named clusters
+```{r}
+
+
+pdf(paste0("./NI_DotPlot_Author_specific_markers_clusterNamed.pdf"),width = 15,height = 10)
+DotPlot(test, group.by = "cell_type",features = c("lz","peb","PPO2","PPO1","sn","Pxn","Hml","eater","NimC1","crq","He","srp"))+
+     theme(axis.text.x = element_text(angle = 90, size = 16), legend.text = element_text(size = 12), legend.title = element_text(size = 12))
+dev.off()
+
+
+pdf(paste0("./NI_DotPlot_clusterNamed.pdf"),width = 15,height = 10)
+DotPlot(test, group.by = "cell_type",features = unique(topmarker$gene))+
+     theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))
+dev.off()
+
+
+
+pdf(paste0("./NI_Heatmap_clusterNamed.pdf"),width = 15,height = 10)
+DoHeatmap(test, features = topmarker$gene,size = 2,group.by = "cell_type") +
+    theme(legend.position = "none", 
+          axis.text.y = element_text(size = 6))
+dev.off()
+
+```
+```{r}
+
+library(grid)
+
+DimPlot(test,reduction = "tSNE_NI",group.by = "cell_type")
+
+rasterImage(
+  FeaturePlot(test, features = c("CecA1"),  cols = c("lightblue2","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+  )
+
+
+```
+
