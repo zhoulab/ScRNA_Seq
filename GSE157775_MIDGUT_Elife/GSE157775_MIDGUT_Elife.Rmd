@@ -3,8 +3,14 @@ title: "GSE157775 MIDGUT Elife"
 output: html_notebook
 ---
 
-Objective: TBA
+#Objective: 
+## 1. First check if there is any hemocytes in this dataset
+## 2. Check if III markers are expressed in other cells in midgut
 
+#Important files***:
+## 1. GSE157775_cell_annotation.csv: Auhtor's annotation
+## 2. GSE157775_sce.RDS: RDS of Seurat OBJ the author's put on GEO
+*** These files can be downloaded at https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE157775
 
 ################################
 set wk dir and library packages
