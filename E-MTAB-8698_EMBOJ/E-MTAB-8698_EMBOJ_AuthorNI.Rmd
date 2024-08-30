@@ -41,6 +41,8 @@ Author_annotation <- data.table::fread(
   "./NI_cell_cluster_ID.txt"
   )
 
+Author_annotation <- as.data.frame(Author_annotation)
+
 NI <- Seurat::Read10X("./filtered_feature_bc_matrix/")
 
 ```
@@ -48,13 +50,36 @@ NI <- Seurat::Read10X("./filtered_feature_bc_matrix/")
 #create seurat OBJ
 ```{r}
 
+NI <- CreateSeuratObject(counts = NI,
+                           project = "Non_Infected_RRCZ22", 
+                           min.cells = 0,  
+                           min.features = 0)
 ```
 
+#first check if author's annotation is the same as meta.data slot in SOBJ
 ```{r}
+View(NI@meta.data)
 
+#substr rownames to change barcode and match that in Author_annotation
+rownames(NI@meta.data) <- substr(rownames(NI@meta.data),1,16)
+
+rownames(NI@meta.data)
+
+#check if author's annotation has the same number of cells as meta.data slot in SOBJ
+nrow(NI@meta.data)
+#7606
+nrow(Author_annotation)
+#7517
+
+#they are not the same
 ```
 
+#subset SOBJ to match author's annotation
 ```{r}
+subset(NI,NI@meta.data$nCount_RNA>1000)
+
+
+
 
 ```
 
