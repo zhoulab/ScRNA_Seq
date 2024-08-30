@@ -2,18 +2,79 @@
 title: "E-MTAB-8698_EMBOJ_AuthorNI"
 output: html_notebook
 ---
+#refer to:
+Cattenoz PB, Sakr R, Pavlidaki A, Delaporte C, Riba A, Molina N, Hariharan N, Mukherjee T, Giangrande A. Temporal specificity and heterogeneity of Drosophila immune cells. EMBO J. 2020 Jun 17;39(12):e104486. doi: 10.15252/embj.2020104486. Epub 2020 Mar 12. PMID: 32162708; PMCID: PMC7298292.
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+#Objectives:
+## 1. explore in which hemocyte clusters are III markers expressed.
+## 2. determine if III markers are differentially expressed in certain clusters than others
+## 3. TBA
 
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+#Important files***:
+## 1. E-MTAB-8698.sdrf.txt meta information for seurat object
+## 2. filtered_feature_bc_matrix_NI_RRCZ22, unzipped folder that contains control (Non_Infected) group of hemocytes scRNAseq data
+*** These files can be downloaded at https://www.ebi.ac.uk/biostudies/arrayexpress/studies/E%E2%80%90MTAB%E2%80%908698
 
+
+
+set wk dir and library package
 ```{r}
-plot(cars)
+setwd(getwd())
+
+library(Seurat)
+library(ggplot2)
+library(cowplot)
+library(Matrix)
+library(dplyr)
+library(ggsci)
+library(data.table)
+library(tidyverse)
+library(patchwork)
+library(clustree)
+library(remotes)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+#import seurat data and author's annotation
+```{r}
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+Author_annotation <- data.table::fread(
+  "./NI_cell_cluster_ID.txt"
+  )
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+NI <- Seurat::Read10X("./filtered_feature_bc_matrix/")
+
+```
+
+#create seurat OBJ
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
 
