@@ -60,10 +60,8 @@ NI <- CreateSeuratObject(counts = NI,
 ```{r}
 View(NI@meta.data)
 
-#substr rownames to change barcode and match that in Author_annotation
-rownames(NI@meta.data) <- substr(rownames(NI@meta.data),1,16)
-
-rownames(NI@meta.data)
+#add "-1" rownames to change cell ID in Author_annotation to match meta.data slot
+Author_annotation$Cell_ID <- paste0(Author_annotation$Cell_ID,"-1")
 
 #check if author's annotation has the same number of cells as meta.data slot in SOBJ
 nrow(NI@meta.data)
@@ -76,11 +74,16 @@ nrow(Author_annotation)
 
 #subset SOBJ to match author's annotation
 ```{r}
-subset(NI,NI@meta.data$nCount_RNA>1000)
+#first change cell ID in RNA slot to match meta.data slot
+# 
+# rownames(NI@assays[["RNA"]]@cells) <- rownames(NI@meta.data)
+# rownames(NI@assays[["RNA"]]@cells)
 
+table(rownames(NI@meta.data)%in%Author_annotation$Cell_ID)
 
+NI[,rownames(NI@meta.data)%in%Author_annotation$Cell_ID]
 
-
+subset(NI,rownames(NI@meta.data)==Author_annotation$Cell_ID)
 ```
 
 ```{r}
