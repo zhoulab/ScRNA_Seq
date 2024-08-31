@@ -47,6 +47,22 @@ NI <- Seurat::Read10X("./filtered_feature_bc_matrix/")
 
 ```
 
+#creat a obj of III markers
+```{r}
+III_Markers <- c("SPH93",
+                                                                          "CecA1",
+                                                                          "CecA2",
+                                                                          "AttA",
+                                                                          "AttB",
+                                                                          "AttC",
+                                                                          "DptA",
+                                                                          "DptB",
+                                                                          "Dro",
+                                                                          "Mtk",
+                                                                          "IM18",
+                                                                          "edin")
+```
+
 #create seurat OBJ
 ```{r}
 
@@ -83,6 +99,7 @@ table(rownames(NI@meta.data)%in%Author_annotation$Cell_ID)
 
 NI2 <- NI[,rownames(NI@meta.data)%in%Author_annotation$Cell_ID]
 
+# subset function is problematic with SeuratV5, use R fundamental instead
 # subset(NI,rownames(NI@meta.data)==Author_annotation$Cell_ID)
 
 
@@ -108,22 +125,98 @@ NI2@meta.data$'annotation' <- Author_annotation$Cluster_ID
 ```{r}
 Idents(NI2) <- NI2@meta.data$annotation
 Idents(NI2)
+table(Idents(NI2))
 ```
 
 
+#run standard seurat pipeline
+```{r}
+# run standard anlaysis workflow
+NI2 <- NormalizeData(NI2)
+NI2 <- FindVariableFeatures(NI2)
+NI2 <- ScaleData(NI2)
+
+# min(nrow(NI2), ncol(NI2))
+NI2 <- RunPCA(NI2,npcs = 50,verbose = F)
+
+#see turning point
+ElbowPlot(NI2, ndims=30, reduction="pca")
+
+
+NI2 <- FindNeighbors(NI2, dims = 1:20, reduction = "pca", verbose=TRUE)
+
+NI2 <- FindClusters(NI2, 
+                    cluster.name = paste0("NI_clusters",
+                                          seq(0.6,0.8,by=0.05)),
+                    resolution = seq(0.6,0.8,by=0.05))
+
+#see resolution
+pdf(paste0("./cluster_tree.pdf"),width = 9,height = 6)
+clustree(NI2,prefix = "NI_clusters")
+dev.off()
+```
+
+#Run UMAP and tSNE dim reduction
+```{r}
+#Umap
+NI3 <- RunUMAP(NI2, dims = 1:20, reduction = "pca", reduction.name = "UMAP_NI",verbose=F)
+
+colnames(NI3@reductions[["UMAP_NI"]]@cell.embeddings) <- c('UMAP_1', 'UMAP_2')
+
+DimPlot(NI3, reduction = "UMAP_NI", group.by = "annotation")
+
+DimPlot(NI3, reduction = "UMAP_NI")
+
+#tsne
+NI3 <- RunTSNE(NI3, dims = 1:20, reduction = "pca", reduction.name = "tSNE_NI",verbose=F)
+
+colnames(NI3@reductions[["tSNE_NI"]]@cell.embeddings) <- c('tSNE_1', 'tSNE_2')
+
+
+DimPlot(NI3, reduction = "tSNE_NI", group.by = "annotation")
+
+```
+
+
+#find marker genes
+#For clarification, check https://www.biostars.org/p/409790/
 ```{r}
 
+all.markers <- FindAllMarkers(NI3, test.use = 'wilcox', only.pos = TRUE, min.pct = 0.10, logfc.threshold = 0.25)
+
 ```
 
+#extract significant markers and topmarkers in each cluster
 ```{r}
 
+marker.sig <- all.markers %>%
+    filter(p_val_adj < 0.05)
+
+topmarker <- marker.sig %>% group_by(cluster) %>% 
+    top_n(n = 5, wt = avg_log2FC)
+
 ```
 
+#plot heatmap and fitplot of significant markers and topmarkers in each cluster
 ```{r}
 
+DoHeatmap(NI3, features = topmarker$gene,size = 2) +
+    theme(legend.position = "none", 
+          axis.text.y = element_text(size = 6))
+
+DotPlot(NI3, features = unique(topmarker$gene))
 ```
 
+#plot the dotplot of III markers
 ```{r}
-
+DotPlot(NI3, features = III_Markers)
 ```
+
+
+#########################
+#save wk image
+```{r}
+save.image("./EMBOJ_hemo_AuthorNI.RData")
+```
+
 
