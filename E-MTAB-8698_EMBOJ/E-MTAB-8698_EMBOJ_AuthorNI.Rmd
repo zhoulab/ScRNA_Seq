@@ -81,14 +81,35 @@ nrow(Author_annotation)
 
 table(rownames(NI@meta.data)%in%Author_annotation$Cell_ID)
 
-NI[,rownames(NI@meta.data)%in%Author_annotation$Cell_ID]
+NI2 <- NI[,rownames(NI@meta.data)%in%Author_annotation$Cell_ID]
 
-subset(NI,rownames(NI@meta.data)==Author_annotation$Cell_ID)
+# subset(NI,rownames(NI@meta.data)==Author_annotation$Cell_ID)
+
+
+#check if NI2 has same cell number of Author_annotation
+nrow(NI2@meta.data)
+#7517
+nrow(Author_annotation)
+#7517
 ```
 
+#merge author's annotation with NI2 meta.data slot
 ```{r}
+View(NI2@meta.data)
+table(rownames(NI2@meta.data)%in%Author_annotation$Cell_ID)
+# TRUE 
+# 7517 
 
+NI2@meta.data$'annotation' <- Author_annotation$Cluster_ID
 ```
+
+
+#change active idents into author's annotation
+```{r}
+Idents(NI2) <- NI2@meta.data$annotation
+Idents(NI2)
+```
+
 
 ```{r}
 
