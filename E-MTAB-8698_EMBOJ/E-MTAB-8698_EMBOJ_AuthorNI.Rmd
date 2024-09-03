@@ -19,6 +19,8 @@ Cattenoz PB, Sakr R, Pavlidaki A, Delaporte C, Riba A, Molina N, Hariharan N, Mu
 
 set wk dir and library package
 ```{r}
+
+#load("./EMBOJ_hemo_AuthorNI.RData")
 setwd(getwd())
 
 library(Seurat)
@@ -211,6 +213,22 @@ DotPlot(NI3, features = unique(topmarker$gene))
 ```{r}
 DotPlot(NI3, features = III_Markers)
 ```
+
+#plot the featureplot of III markers and look at their distribution in different cells
+```{r}
+#feature plot based on tSNE reduction
+for (i in 1:length(III_Markers)) {
+  tmp <- Seurat::FeaturePlot(NI3, features = III_Markers[i],  cols = c("grey","darkred"), reduction = "tSNE_NI",keep.scale = "feature")
+  ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_NI_tSNE_",III_Markers[i],".pdf"),width = 9,height = 6)
+}
+
+#feature plot based on UMAP reduction
+for (i in 1:length(III_Markers)) {
+  tmp <- Seurat::FeaturePlot(NI3, features = III_Markers[i],  cols = c("grey","darkred"), reduction = "UMAP_NI",keep.scale = "feature")
+  ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_NI_UMAP_",III_Markers[i],".pdf"),width = 9,height = 6)
+}
+```
+
 
 
 #########################
