@@ -179,6 +179,27 @@ DimPlot(NI3, reduction = "tSNE_NI", group.by = "annotation")
 
 ```
 
+#save Dimplot
+```{r}
+#tSNE Dimplot
+ggsave(
+  DimPlot(NI3, reduction = "tSNE_NI", group.by = "annotation",label = T,label.size = 3),
+       device = "pdf",file= paste0("./Dimplot/Dimplot_NI_tSNE.pdf"),
+       width = 9,
+       height = 6
+       )
+
+#UMAP Dimplot
+ggsave(
+  DimPlot(NI3, reduction = "UMAP_NI", group.by = "annotation",label = T,label.size = 3),
+       device = "pdf",file= paste0("./Dimplot/Dimplot_NI_UMAP.pdf"),
+       width = 9,
+       height = 6
+       )
+
+
+```
+
 
 #find marker genes
 #For clarification, check https://www.biostars.org/p/409790/
