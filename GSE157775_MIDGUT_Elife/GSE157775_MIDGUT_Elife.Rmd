@@ -24,14 +24,29 @@ library(Matrix)
 library(dplyr)
 library(ggsci)
 library(data.table)
-library(monocle)
-#library(DoubletFinder)
 library(tidyverse)
 library(patchwork)
 library(clustree)
 library(remotes)
 library(data.table)
 library(ggrepel)
+```
+
+
+#creat a obj of III markers
+```{r}
+III_Markers <- c("SPH93",
+                                                                          "CecA1",
+                                                                          "CecA2",
+                                                                          "AttA",
+                                                                          "AttB",
+                                                                          "AttC",
+                                                                          "DptA",
+                                                                          "DptB",
+                                                                          "Dro",
+                                                                          "Mtk",
+                                                                          "IM18",
+                                                                          "edin")
 ```
 
 
