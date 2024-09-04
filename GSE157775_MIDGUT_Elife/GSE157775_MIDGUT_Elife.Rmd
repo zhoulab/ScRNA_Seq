@@ -31,7 +31,7 @@ library(remotes)
 library(data.table)
 library(ggrepel)
 
-#load("./MIDGUT_Elife_wkimage.RData")
+load("./MIDGUT_Elife_wkimage.RData")
 ```
 
 
@@ -269,12 +269,14 @@ find marker genes in each cluster
 ```{r}
 
 Idents(MIDGUT_Elife3) <- MIDGUT_Elife3@meta.data$annotation
+# 
+# MIDGUT_Elife3@assays[["RNA"]] <- MIDGUT_Elife3@assays[["originalexp"]]
+# 
+# SCTransform(MIDGUT_Elife3)
 
-MIDGUT_Elife3@assays[["RNA"]] <- MIDGUT_Elife3@assays[["originalexp"]]
+JoinLayers(MIDGUT_Elife3)
 
-MIDGUT_Elife3 <- JoinLayers(MIDGUT_Elife3,assay = "RNA")
-
-all.markers <- FindAllMarkers(MIDGUT_Elife3, test.use = 'MAST', only.pos = TRUE, min.pct = 0.10, logfc.threshold = 0.25,group.by="annotation")
+all.markers <- FindAllMarkers(MIDGUT_Elife3, test.use = 'wilcox', only.pos = F, min.pct = 0, logfc.threshold = 0,group.by="annotation")
 
 ```
 
