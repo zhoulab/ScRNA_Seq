@@ -112,6 +112,12 @@ MIDGUT_Elife2 <- FindClusters(MIDGUT_Elife2, resolution = 0.6, cluster.name = "M
 
 ```
 
+#change active ident back to annotation
+```{r}
+Idents(MIDGUT_Elife) <- MIDGUT_Elife@meta.data$annotation
+```
+
+
 #Run UMAP and tSEN (optional)
 ```{r}
 
@@ -124,6 +130,7 @@ MIDGUT_Elife3 <- RunUMAP(MIDGUT_Elife2, dims = 1:30, reduction = "pca", reductio
 
 head(MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings)
 
+#change reduciton UAMP coordinates to the one in authos's annotation
 MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings[,1] <- MIDGUT_Elife3@meta.data$UMAP_1
 
 MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings[,2] <- MIDGUT_Elife3@meta.data$UMAP_2
@@ -141,7 +148,7 @@ Idents(MIDGUT_Elife3) <- MIDGUT_Elife3@meta.data$annotation
 
 #Now plot the UMAP Dimplot
 
-pdf("./MIDGUT_Elife_UMAP_Dimplot.pdf",width = 9,height = 6)
+pdf("./Dimplot/MIDGUT_Elife_UMAP_Dimplot.pdf",width = 9,height = 6)
 DimPlot(MIDGUT_Elife3,reduction = "UMAP_MIDGUT_Elife",raster = F,label = T)
 dev.off()
 
@@ -164,7 +171,7 @@ originalexp_counts <- as.data.frame(MIDGUT_Elife3@assays$originalexp$counts)
 
 annotation_table <- fread("./FBgn2Symbol.csv",header = F)
 
-
+#map ID
 ID_to_symbol <- function(expr_data){
   df=expr_data
   if(sum(colnames(df)=="gene_name", na.rm=TRUE)){
@@ -209,50 +216,65 @@ write.table(file = "./Unampped_ID.txt",
             row.names = F
             )
 ####
-#import unmapped2symbol done based on flybase ID validator
+```
 
+#import unmapped2symbol done based on flybase ID validator
+```{r}
 unmapped2symbol <- fread("./FlyBase_Fields_download_Unmapped2Symbol.txt",header = T)
 
 originalexp_counts2$gene_name[which(originalexp_counts2$gene_name=="No_map")] <- unmapped2symbol$SYMBOL
 
 originalexp_counts2$gene_name[which(originalexp_counts2$gene_name=="No_map")]
+#character(0)
 #successfully mapped
 
 
 #convert FBgn in counts slot in midgut seurat obj into gene symbol, so feature plot can be made
 MIDGUT_Elife3@assays[["originalexp"]]@counts@Dimnames[[1]] <- originalexp_counts2$gene_name
 
+MIDGUT_Elife3@assays[["originalexp"]]@var.features <- originalexp_counts2$gene_name
+
+MIDGUT_Elife3@assays[["originalexp"]]@data@Dimnames[[1]]<- originalexp_counts2$gene_name
+
+MIDGUT_Elife3@assays[["originalexp"]]@meta.features[["gene_name"]]<- originalexp_counts2$gene_name
+
+#check now
 MIDGUT_Elife3@assays[["originalexp"]]@counts@Dimnames[[1]]
+MIDGUT_Elife3@assays[["originalexp"]]@var.features
+MIDGUT_Elife3@assays[["originalexp"]]@data@Dimnames[[1]]
+MIDGUT_Elife3@assays[["originalexp"]]@meta.features[["gene_name"]]
+#now FBgn is converted to gene symbol in all slots
+```
+
+#generate feature plot of III markers
+```{r}
+Assays(MIDGUT_Elife3)
+DefaultAssay(MIDGUT_Elife3) 
+
+#feature plot based on UMAP reduction
+for (i in length(III_Markers)) {
+  tmp <- Seurat::FeaturePlot(MIDGUT_Elife3, features = III_Markers[i],  cols = c("grey","darkred"), reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
+  ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_MIDGUT_UMAP_",III_Markers[i],".pdf"),width = 9,height = 6);
+}
 
 ```
 
-#generate feature plot
+find marker genes in each cluster
 ```{r}
 
-FeaturePlot(MIDGUT_Elife3, features = c("SPH93"),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
+Idents(MIDGUT_Elife3) <- MIDGUT_Elife3@meta.data$annotation
 
+MIDGUT_Elife3@assays[["RNA"]] <- MIDGUT_Elife3@assays[["originalexp"]]
 
+MIDGUT_Elife3 <- JoinLayers(MIDGUT_Elife3,assay = "RNA")
 
-FeaturePlot(MIDGUT_Elife3, features = c("CecA1"),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
-
-
-FeaturePlot(MIDGUT_Elife3, features = c("AttA"),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
-
-
-FeaturePlot(MIDGUT_Elife3, features = c("edin"),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
-
-
-FeaturePlot(MIDGUT_Elife3, features = c("Dro"),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
-
-
-FeaturePlot(MIDGUT_Elife3, features = c("IM18"),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
-
-
-FeaturePlot(MIDGUT_Elife3, features = c("Hml"),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
-
-
-FeaturePlot(MIDGUT_Elife3, features = c(""),  cols = c("azure3","darkred"),raster=FALSE, reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
+all.markers <- FindAllMarkers(MIDGUT_Elife3, test.use = 'MAST', only.pos = TRUE, min.pct = 0.10, logfc.threshold = 0.25,group.by="annotation")
 
 ```
 
+
+#save wk image
+```{r}
+save.image("./MIDGUT_Elife_wkimage.RData")
+```
 
