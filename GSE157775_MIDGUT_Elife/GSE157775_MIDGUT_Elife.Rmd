@@ -30,6 +30,8 @@ library(clustree)
 library(remotes)
 library(data.table)
 library(ggrepel)
+
+#load("./MIDGUT_Elife_wkimage.RData")
 ```
 
 
@@ -253,10 +255,14 @@ DefaultAssay(MIDGUT_Elife3)
 
 #feature plot based on UMAP reduction
 for (i in length(III_Markers)) {
-  tmp <- Seurat::FeaturePlot(MIDGUT_Elife3, features = III_Markers[i],  cols = c("grey","darkred"), reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts")
+  tmp <- Seurat::FeaturePlot(MIDGUT_Elife3, features = III_Markers[i],  cols = c("grey","darkred"), reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts");
   ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_MIDGUT_UMAP_",III_Markers[i],".pdf"),width = 9,height = 6);
 }
 
+#plot hemocyte-specific marker Hml
+ggsave(Seurat::FeaturePlot(MIDGUT_Elife3, features = "Hml",  cols = c("grey","darkred"), reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts",raster = F,pt.size = 0.005),
+       device = "pdf",
+       file= paste0("./Featureplot/Featureplot_MIDGUT_UMAP_","Hml",".pdf"),width = 9,height = 6)
 ```
 
 find marker genes in each cluster
