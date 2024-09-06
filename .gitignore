@@ -21,6 +21,7 @@ test/
 
 # Output files from R CMD build
 /*.tar.gz
+./#.nb.html
 
 # Output files from R CMD check
 /*.Rcheck/
@@ -55,3 +56,6 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# scRNA-seq data downloaded
+*.tsv
