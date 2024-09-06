@@ -101,7 +101,7 @@ set working directory and library package
 ```{r}
 
 ## run at HiPerGator (HPG)
-setwd("/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/")  
+setwd(getwd())  
 
 #This is the work.image saved on HPG
 #load("GSE107451_head_ALL_57k.RData")
@@ -120,7 +120,7 @@ library(EnhancedVolcano)
 library(ggrepel)
 library(gplots)
 #devtools::install_github("immunogenomics/presto")
-
+#BiocManager::install("EnhancedVolcano")
 ```
 
 Import data and create Seurat object
@@ -130,7 +130,7 @@ Import data and create Seurat object
 ALL_HEAD_57k <- Seurat::Read10X("./GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv")
 #create seurat object, setting minimum standard (57k is filtered dataset by author, no need to filter)
 ALL_HEAD_57k <- CreateSeuratObject(counts = ALL_HEAD_57k,
-                               project = "ALL_HEAD_57k_GSE107451_Summer2024", 
+                               project = "ALL_HEAD_57k_GSE107451", 
                                min.cells = 0,  
                                min.features = 0)
 #look at the meta data
@@ -1524,9 +1524,9 @@ dev.off()
 
 
 
-
+##########################
 save work image
 ```{r}
-#save.image("GSE107451_head_ALL_57k.RData")
+save.image("GSE107451_head_ALL_57k.RData")
 ```
 

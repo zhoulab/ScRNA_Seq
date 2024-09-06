@@ -274,7 +274,7 @@ Idents(MIDGUT_Elife3) <- MIDGUT_Elife3@meta.data$annotation
 # 
 # SCTransform(MIDGUT_Elife3)
 
-JoinLayers(MIDGUT_Elife3)
+#JoinLayers(MIDGUT_Elife3)
 
 all.markers <- FindAllMarkers(MIDGUT_Elife3, test.use = 'wilcox', only.pos = F, min.pct = 0, logfc.threshold = 0,group.by="annotation")
 
