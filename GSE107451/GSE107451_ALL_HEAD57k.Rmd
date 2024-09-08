@@ -748,7 +748,7 @@ nrow(
 
 ```
 
-#A function to determine the persentage of plasmatocytes of a specific Strain, sex at different ages
+#A function to determine the percentage of plasmatocytes of a specific Strain, sex at different ages
 ```{r}
 
 calculate_cell_percentage <- function(seurat_obj, cell_types, strains, sexes) {
@@ -979,7 +979,8 @@ make_heatmap(EXPR_OBJ = count_w1118_male[,-c(1:2)],GENELIST = III_Marker_Genes,T
 dev.off()
 ```
 
-Differential expression with presto package all comparison
+#This part is for Objective 1.1 does the scRNA-Seq data agree with bulk RNA0Seq data? 
+Differential expression with presto package (comparison of all ages, similar to the idea of findallmarkers)
 ```{r}
 #https://satijalab.org/seurat/articles/announcements.html (recommended by Seurat team)
 #https://github.com/immunogenomics/presto
@@ -988,26 +989,27 @@ Differential expression with presto package all comparison
 
 #Find the DEGs at different age
 ##DGRP-551_female
-DE_DGRP551_female <- wilcoxauc(
+DE_DGRP551_female_Ages <- wilcoxauc(
   subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
   group_by ="Age")
 
 ##DGRP-551_male
-DE_DGRP551_male <- wilcoxauc(
+DE_DGRP551_male_Ages <- wilcoxauc(
   subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"),
   group_by ="Age")
 
 ##w1118_female
-DE_w1118_female <- wilcoxauc(
+DE_w1118_female_Ages <- wilcoxauc(
   subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"),
   group_by ="Age")
 
 ##w1118_male
-DE_w1118_male <- wilcoxauc(
+DE_w1118_male_Ages <- wilcoxauc(
   subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"),
   group_by ="Age")
 ```
 
+#(Continue) Objetive 1.1 does the scRNA-Seq data agree with bulk RNA0Seq data?
 Differential expression with presto package, 1vs1 comparison
 ```{r}
 #This area of code demonstrates the case where Sometimes, you don't want to test all groups in the dataset against all other groups. 
@@ -1015,20 +1017,20 @@ Differential expression with presto package, 1vs1 comparison
 
 
 #### These two code chunks are different in terms of the order of Age put into the function
-View(
-  wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
-  group_by = "Age",
-  groups_use = c("50","3"))
-  )
-
-
-View(
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
-    group_by = "Age",
-    groups_use = c("3","50"))
-)
+# View(
+#   wilcoxauc(
+#   subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
+#   group_by = "Age",
+#   groups_use = c("50","3"))
+#   )
+# 
+# 
+# View(
+#   wilcoxauc(
+#     subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
+#     group_by = "Age",
+#     groups_use = c("3","50"))
+# )
 #### The order of age put into function does not influence comparison result.
 
 
@@ -1036,42 +1038,63 @@ View(
 #find the DEGs by comparing one age to another age
 
 #DGRP551_female day50 vs day3 and day30 vs day3
-DGRP551_female_50vs3 <- 
+DE_DGRP551_female_50vs3 <- 
   wilcoxauc(
   subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
   group_by = "Age",
   groups_use = c("50","3"))
-DGRP551_female_30vs3 <- 
+DE_DGRP551_female_30vs3 <- 
   wilcoxauc(
   subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
   group_by = "Age",
   groups_use = c("30","3"))
 
 #DGRP551_male day50 vs day3 and day30 vs day3
-DGRP551_male_50vs3 <- 
+DE_DGRP551_male_50vs3 <- 
   wilcoxauc(
     subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"),
     group_by = "Age",
     groups_use = c("50","3"))
-DGRP551_male_30vs3 <- 
+DE_DGRP551_male_30vs3 <- 
   wilcoxauc(
     subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"),
     group_by = "Age",
     groups_use = c("30","3"))
 
 #w1118_female day30 vs day3
-w1118_female_30vs3 <- 
+DE_w1118_female_30vs3 <- 
   wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
+    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"),
     group_by = "Age",
     groups_use = c("30","3"))
 
 #w1118_male day30 vs day3
-w1118_male_30vs3 <- 
+DE_w1118_male_30vs3 <- 
   wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"),
+    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"),
     group_by = "Age",
     groups_use = c("30","3"))
+
+################
+#save the DE results above 
+openxlsx::write.xlsx(DE_DGRP551_female_50vs3,
+                     "./data/Brain57k/DE_DGRP551_female_50vs3.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_female_30vs3,
+                     "./data/Brain57k/DE_DGRP551_female_30vs3.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_50vs3,
+                     "./data/Brain57k/DE_DGRP551_male_50vs3.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_30vs3,
+                     "./data/Brain57k/DE_DGRP551_male_30vs3.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_female_30vs3,
+                     "./data/Brain57k/DE_w1118_female_30vs3.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_male_30vs3,
+                     "./data/Brain57k/DE_w1118_male_30vs3.xlsx",
+                     rowNames=F)
 ```
 
 visualization of presto Differential expression result
@@ -1363,6 +1386,8 @@ ggsave(EnhancedVolcano(subset(w1118_male_30vs3,group=="30"),
 
 ```
 
+
+#Objective 1.2 (Another method)
 Find which cell type III Markers increased significantly in
 ```{r}
 #based on presto package that provides statistical significance on a holistic level of comparison for all cell clusters
@@ -1370,10 +1395,12 @@ Find which cell type III Markers increased significantly in
 DE_Cell_Cluster <- wilcoxauc(ALL_HEAD_57k3,group_by = "annotation")
 
 #look at the result for III markers
-View(subset(DE_Cell_Cluster,DE_Cell_Cluster$feature%in%III_Marker_Genes))
+DE_Cell_Cluster_III_Marker_Genes <- subset(DE_Cell_Cluster,DE_Cell_Cluster$feature%in%III_Marker_Genes)
+
+View(DE_Cell_Cluster_III_Marker_Genes)
 #export the statistical result fo III markers for further analysis
-openxlsx::write.xlsx(subset(DE_Cell_Cluster,DE_Cell_Cluster$feature%in%III_Marker_Genes),
-                     "DE_cell_cluster_result_III_Markers.xlsx",
+openxlsx::write.xlsx(DE_Cell_Cluster_III_Marker_Genes,
+                     "./data/Brain57k/DE_cell_cluster_result_III_Markers.xlsx",
                      rowNames=F)
 ```
 
