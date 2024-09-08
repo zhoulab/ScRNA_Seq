@@ -160,25 +160,25 @@ ALL_HEAD_57k2 <- NormalizeData(ALL_HEAD_57k)
 ALL_HEAD_57k2 <- FindVariableFeatures(ALL_HEAD_57k2)
 ALL_HEAD_57k2 <- ScaleData(ALL_HEAD_57k2)
 min(nrow(ALL_HEAD_57k2), ncol(ALL_HEAD_57k2))
-ALL_HEAD_57k2 <- RunPCA(ALL_HEAD_57k2,npcs = 82,verbose = F)
-ALL_HEAD_57k2 <- FindNeighbors(ALL_HEAD_57k2, dims = 1:82, reduction = "pca", verbose=TRUE)
-
-#find clusters under different resolutions
-for (i in seq(0.80,0.95,by=0.01)) {
-  ALL_HEAD_57k2 <- FindClusters(ALL_HEAD_57k2, resolution = i, cluster.name = paste0("ALL_HEAD_57k_clusters_",i))
-}
+ALL_HEAD_57k2 <- RunPCA(ALL_HEAD_57k2,npcs = 20,verbose = F)
+ALL_HEAD_57k2 <- FindNeighbors(ALL_HEAD_57k2, dims = 1:20, reduction = "pca", verbose=TRUE)
+# 
+# #find clusters under different resolutions
+# for (i in seq(0.80,0.95,by=0.01)) {
+#   ALL_HEAD_57k2 <- FindClusters(ALL_HEAD_57k2, resolution = i, cluster.name = paste0("ALL_HEAD_57k_clusters_",i))
+# }
 
 #save the resolution adn clustering results with clustree
-ggsave(clustree(ALL_HEAD_57k2,prefix = "ALL_HEAD_57k_clusters_"), device = "pdf",filename = "./cluster_tree.pdf",width = 30,height = 20)
+# ggsave(clustree(ALL_HEAD_57k2,prefix = "ALL_HEAD_57k_clusters_"), device = "pdf",filename = "./cluster_tree.pdf",width = 30,height = 20)
 
 #change active.ident to 87 clusters for next step (using author's annotation)
-ALL_HEAD_57k2@active.ident <- as.factor(ALL_HEAD_57k2@meta.data$res.2)
+ALL_HEAD_57k2@active.ident <- as.factor(ALL_HEAD_57k2@meta.data$annotation)
 ```
 
 Run tSNE reductons
 ```{r}
 #Run tSNE
-ALL_HEAD_57k3 <- RunTSNE(ALL_HEAD_57k2, dims = 1:82, reduction = "pca", reduction.name = "tSNE_ALL_HEAD_57k_Author_cluster",verbose=F,perplexity=30)
+ALL_HEAD_57k3 <- RunTSNE(ALL_HEAD_57k2, dims = 1:20, reduction = "pca", reduction.name = "tSNE_ALL_HEAD_57k_Author_cluster",verbose=F,perplexity=30)
 
  
 #change tSNE coordinates to authors' values (so the topology looks if not the same, very similar)
@@ -191,7 +191,7 @@ ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings[,
 
 
 #tSNE plot of cell clusters based on author's annotation
-pdf(paste0("./ALL_HEAD_57k_tSNE.pdf"),width = 30,height = 20)
+pdf(paste0("./Dimplot/ALL_HEAD_57k_tSNE.pdf"),width = 30,height = 20)
 DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster",group.by = "annotation",
         label = TRUE,
         label.size = 5,
@@ -199,7 +199,7 @@ DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster",group.by =
 dev.off()
 
 #tSNE plot of different ages based on author's annotation
-pdf(paste0("./ALL_HEAD_57k_tSNE_days.pdf"),width = 15,height = 10)
+pdf(paste0("./Dimplot/ALL_HEAD_57k_tSNE_days.pdf"),width = 15,height = 10)
 DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster", group.by = "Age")
 dev.off()
 
@@ -220,20 +220,21 @@ III_Marker_Genes <- c("SPH93",
                       "DptB",
                       "Dro",
                       "Mtk",
-                      #"IM18",
+                      "IM18",
                       "edin")
 
 #This is an easy loop to save feature plots of all the inflammaging markers
 for (i in 1:length(III_Marker_Genes)) {
   tmp <- Seurat::FeaturePlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature")
-  ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_",III_Marker_Genes[i]),width = 15,height = 10)
+  ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
 
 #these two additional feature plots of noe and pros are for comparision of plot colors when there are many cells expressing certain genes
 ggsave(Seurat::FeaturePlot(ALL_HEAD_57k3, features = "noe",  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature"),
-       device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_","noe"),width = 15,height = 10)
+       device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_","noe",".pdf"),width = 9,height = 6)
+
 ggsave(Seurat::FeaturePlot(ALL_HEAD_57k3, features = "pros",  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature"),
-       device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_","pros"),width = 15,height = 10)
+       device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_","pros",".pdf"),width = 9,height = 6)
 ```
 
 violin plot of Inflammaging markers
@@ -242,21 +243,21 @@ violin plot of Inflammaging markers
 #This is an easy loop to save voilin plots of all the inflammaging markers based on Genotype
 for (i in 1:length(III_Marker_Genes)) {
   tmp2 <- Seurat::VlnPlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],group.by = "Genotype")
-  ggsave(tmp2,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Genotype_",III_Marker_Genes[i]),width = 15,height = 10)
+  ggsave(tmp2,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Genotype_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
 
 #This vlnplot of noe is used to demonstrate what vlnplot looks like when there is enough cells expressing a gene
 ggsave(Seurat::VlnPlot(ALL_HEAD_57k3, features = "noe",group.by = "Genotype")
-       ,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Genotype_","noe"),width = 15,height = 10)
+       ,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Genotype_","noe",".pdf"),width = 9,height = 6)
 
 #save voilin plots of all the inflammaging markers based on days
 for (i in 1:length(III_Marker_Genes)) {
   tmp3 <- Seurat::VlnPlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],group.by = "Age")
-  ggsave(tmp3,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Age_",III_Marker_Genes[i]),width = 15,height = 10)
+  ggsave(tmp3,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Age_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
 #This vlnplot of noe is used to demonstrate what vlnplot looks like when there is enough cells expressing a gene
 ggsave(Seurat::VlnPlot(ALL_HEAD_57k3, features = "noe",group.by = "Age")
-       ,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Age_","noe"),width = 15,height = 10)
+       ,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Age_","noe",".pdf"),width = 9,height = 6)
 
 ```
 
@@ -264,7 +265,7 @@ make patial feature plot of III markers in plasmatocyte
 ```{r}
 
 #tSNE of the plasmatocytes cluster
-pdf(file = "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Featureplot/partial_Plasmatocytes/Plasmatocytes_tSNE.pdf",width = 15,height = 10)
+pdf(file = "./Dimplot/Plasmatocytes_tSNE.pdf",width = 9,height = 6)
 DimPlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
         reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
         group.by = "annotation",
@@ -286,7 +287,7 @@ for (i in 1:length(III_Marker_Genes)) {
   ggsave(tmp,
          device = "pdf",
          file= paste0(
-           "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Featureplot/partial_Plasmatocytes/",
+           "./Featureplot/Plasmatocytes/",
            III_Marker_Genes[i],
            "_Plasmatocytes.pdf"),
          width = 9,
@@ -310,7 +311,7 @@ for (i in 1:length(III_Marker_Genes)) {
   ggsave(tmp,
          device = "pdf",
          file= paste0(
-           "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Featureplot/partial_Plasmatocytes/",
+           "./Featureplot/Plasmatocytes/",
            III_Marker_Genes[i],
            "_Plasmatocytes_Age.pdf"),
          width = 9,
@@ -334,7 +335,7 @@ for (i in 1:length(III_Marker_Genes)) {
   ggsave(tmp,
          device = "pdf",
          file= paste0(
-           "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Featureplot/partial_Plasmatocytes/",
+           "./Featureplot/Plasmatocytes/",
            III_Marker_Genes[i],
            "_Plasmatocytes_Age_DGRP551_female.pdf"),
          width = 9,
@@ -359,7 +360,7 @@ for (i in 1:length(III_Marker_Genes)) {
   ggsave(tmp,
          device = "pdf",
          file= paste0(
-           "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Featureplot/partial_Plasmatocytes/",
+           "./Featureplot/Plasmatocytes/",
            III_Marker_Genes[i],
            "_Plasmatocytes_Age_DGRP551_male.pdf"),
          width = 9,
@@ -384,7 +385,7 @@ for (i in 1:length(III_Marker_Genes)) {
   ggsave(tmp,
          device = "pdf",
          file= paste0(
-           "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Featureplot/partial_Plasmatocytes/",
+           "./Featureplot/Plasmatocytes/",
            III_Marker_Genes[i],
            "_Plasmatocytes_Age_w1118_female.pdf"),
          width = 9,
@@ -409,7 +410,7 @@ for (i in 1:length(III_Marker_Genes)) {
   ggsave(tmp,
          device = "pdf",
          file= paste0(
-           "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Featureplot/partial_Plasmatocytes/",
+           "./Featureplot/Plasmatocytes/",
            III_Marker_Genes[i],
            "_Plasmatocytes_Age_w1118_male.pdf"),
          width = 9,
@@ -420,6 +421,7 @@ for (i in 1:length(III_Marker_Genes)) {
 ```
 
 ***test, find all markers, lowest standard
+#This is for objective 1.1
 ```{r}
 #change active idents in ALL_HEAD_57k3
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3@meta.data$annotation
@@ -438,25 +440,17 @@ lowest_standard_markers_dotplot <- DotPlot(ALL_HEAD_57k3, features = III_Marker_
 View(lowest_standard_markers_dotplot$data)
 
 #export dotplot of III markers
-pdf("/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Dotplot/III_Markers_dotplot.pdf",
-    width = 40,
-    height = 15)
+pdf("./Dotplot/III_Markers_dotplot.pdf",
+    width = 30,
+    height = 10)
 lowest_standard_markers_dotplot
 dev.off()
 
 #export dotplot data () of III markers
 openxlsx::write.xlsx(lowest_standard_markers_dotplot$data[lowest_standard_markers_dotplot$data$features.plot%in%III_Marker_Genes,],
-                     "lowest_standard_markers_III_markers.xlsx",
+                     "./data/Brain57k/lowest_standard_markers_III_markers.xlsx",
                      rowNames=F)
 
-### Try another method of finding percentage of gene expression
-#find the percentage of expression of III markers in cell clusters.
-#https://samuel-marsh.github.io/scCustomize/reference/Percent_Expressing.html
-#https://samuel-marsh.github.io/scCustomize/articles/Statistics.html
-percent_EXPR_III_markers <- scCustomize::Percent_Expressing(seurat_object = ALL_HEAD_57k3,
-                                                            features = III_Marker_Genes,
-                                                            group_by = "annotation")
-View(t(percent_EXPR_III_markers))
 ```
 
 make a function to see number of cells in different Strains, Sex at different Ages
