@@ -104,7 +104,7 @@ set working directory and library package
 setwd(getwd())  
 
 #This is the work.image saved on HPG
-#load("GSE107451_head_ALL_57k.RData")
+load("GSE107451_head_ALL_57k.RData")
 
 
 library(Seurat)
@@ -1095,6 +1095,27 @@ openxlsx::write.xlsx(DE_w1118_female_30vs3,
 openxlsx::write.xlsx(DE_w1118_male_30vs3,
                      "./data/Brain57k/DE_w1118_male_30vs3.xlsx",
                      rowNames=F)
+
+#save the result above only for III Markers
+openxlsx::write.xlsx(DE_DGRP551_female_50vs3[DE_DGRP551_female_50vs3$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_female_50vs3_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_female_30vs3[DE_DGRP551_female_30vs3$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_female_30vs3_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_50vs3[DE_DGRP551_male_50vs3$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_male_50vs3_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_30vs3[DE_DGRP551_male_30vs3$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_male_30vs3_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_female_30vs3[DE_w1118_female_30vs3$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_w1118_female_30vs3_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_male_30vs3[DE_w1118_male_30vs3$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_w1118_male_30vs3_III_Markers.xlsx",
+                     rowNames=F)
+
 ```
 
 visualization of presto Differential expression result
