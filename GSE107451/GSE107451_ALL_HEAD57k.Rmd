@@ -1118,6 +1118,95 @@ openxlsx::write.xlsx(DE_w1118_male_30vs3[DE_w1118_male_30vs3$feature%in%III_Mark
 
 ```
 
+#Objective 1.3, do IMs increase or decrease in plasmatocytes?
+```{r}
+
+#find the DEGs by comparing one age to another age in Plasmatocytes
+
+#DGRP551_female day50 vs day3 and day30 vs day3
+DE_DGRP551_female_50vs3_Plasmatocytes <- 
+  wilcoxauc(
+  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&annotation=="Plasmatocytes"),
+  group_by = "Age",
+  groups_use = c("50","3"))
+DE_DGRP551_female_30vs3_Plasmatocytes <- 
+  wilcoxauc(
+  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&annotation=="Plasmatocytes"),
+  group_by = "Age",
+  groups_use = c("30","3"))
+
+#DGRP551_male day50 vs day3 and day30 vs day3
+DE_DGRP551_male_50vs3_Plasmatocytes <- 
+  wilcoxauc(
+    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"&annotation=="Plasmatocytes"),
+    group_by = "Age",
+    groups_use = c("50","3"))
+DE_DGRP551_male_30vs3_Plasmatocytes <- 
+  wilcoxauc(
+    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"&annotation=="Plasmatocytes"),
+    group_by = "Age",
+    groups_use = c("30","3"))
+
+#w1118_female day30 vs day3
+DE_w1118_female_30vs3_Plasmatocytes <- 
+  wilcoxauc(
+    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&annotation=="Plasmatocytes"),
+    group_by = "Age",
+    groups_use = c("30","3"))
+
+#w1118_male day30 vs day3
+DE_w1118_male_30vs3_Plasmatocytes <- 
+  wilcoxauc(
+    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"&annotation=="Plasmatocytes"),
+    group_by = "Age",
+    groups_use = c("30","3"))
+
+
+
+################
+#save the DE results above 
+openxlsx::write.xlsx(DE_DGRP551_female_50vs3_Plasmatocytes,
+                     "./data/Brain57k/DE_DGRP551_female_50vs3_Plasmatocytes.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_female_30vs3_Plasmatocytes,
+                     "./data/Brain57k/DE_DGRP551_female_30vs3_Plasmatocytes.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_50vs3_Plasmatocytes,
+                     "./data/Brain57k/DE_DGRP551_male_50vs3_Plasmatocytes.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_30vs3_Plasmatocytes,
+                     "./data/Brain57k/DE_DGRP551_male_30vs3_Plasmatocytes.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_female_30vs3_Plasmatocytes,
+                     "./data/Brain57k/DE_w1118_female_30vs3_Plasmatocytes.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_male_30vs3_Plasmatocytes,
+                     "./data/Brain57k/DE_w1118_male_30vs3_Plasmatocytes.xlsx",
+                     rowNames=F)
+
+#save the result above only for III Markers
+openxlsx::write.xlsx(DE_DGRP551_female_50vs3_Plasmatocytes[DE_DGRP551_female_50vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_female_50vs3_Plasmatocytes_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_female_30vs3_Plasmatocytes[DE_DGRP551_female_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_female_30vs3_Plasmatocytes_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_50vs3_Plasmatocytes[DE_DGRP551_male_50vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_male_50vs3_Plasmatocytes_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_DGRP551_male_30vs3_Plasmatocytes[DE_DGRP551_male_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_DGRP551_male_30vs3_Plasmatocytes_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_female_30vs3_Plasmatocytes[DE_w1118_female_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_w1118_female_30vs3_Plasmatocytes_III_Markers.xlsx",
+                     rowNames=F)
+openxlsx::write.xlsx(DE_w1118_male_30vs3_Plasmatocytes[DE_w1118_male_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
+                     "./data/Brain57k/DE_w1118_male_30vs3_Plasmatocytes_III_Markers.xlsx",
+                     rowNames=F)
+
+```
+
+
 visualization of presto Differential expression result
 ```{r}
 
