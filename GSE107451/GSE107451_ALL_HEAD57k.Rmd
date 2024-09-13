@@ -1734,7 +1734,7 @@ res1[which(res1$log2FoldChange <= -log2FC_thresh & res1$pvalue < p_thresh),'sig'
 res1[which(abs(res1$log2FoldChange) <= log2FC_thresh | res1$pvalue >= p_thresh),'sig'] <- 'none'
 
 
-write.xlsx(res1, paste0(File_Title,".xlsx"),rowNames=T)
+write.xlsx(res1, paste0("./DESeq_result/",File_Title,".xlsx"),rowNames=T)
 
 write.xlsx(res1[res1$'sig'=='up',],paste0("./DESeq_result/",File_Title,"_UP",p_thresh,".xlsx"),rowNames=T)
 
@@ -1758,7 +1758,9 @@ write.xlsx(res1[res1$'sig'=='down',],paste0("./DESeq_result/",File_Title,"_DOWN"
 
 Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE){
   #First remove genes containing just zero;
-  PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,]
+  PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
+  PSEUDO_INPUT <- na.omit(PSEUDO_INPUT);
+  PSEUDO_INPUT <- PSEUDO_INPUT+1
   #First take the subset based on strain and sex
   PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "__",4,simplify =T)[,2]==STRAIN)];
   PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "__",4,simplify =T)[,3]==SEX)];
@@ -1781,13 +1783,55 @@ Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_A
 }                                              
 ```
 
-#test Run_DESeq2_Pseudo_HEAD_Cells function
+#test Run_DESeq2_Pseudo_HEAD_Cells function Using Universally acknowledged thresholds: p<0.05 and log2FC>1 (or you can manually select based on P value in .xlsx that contains both up and down)
 ```{r}
+#This comparison below took 8 minutes
+Run_DESeq2_Pseudo_HEAD_Cells(
+  PSEUDO_INPUT=Pseudo_HEAD_Cells,
+  STRAIN="DGRP-551",
+  SEX="female",
+  OLD_AGE="30",
+  YOUNG_AGE="3"
+  )
+
 Run_DESeq2_Pseudo_HEAD_Cells(
   PSEUDO_INPUT=Pseudo_HEAD_Cells,
   STRAIN="DGRP-551",
   SEX="female",
   OLD_AGE="50",
+  YOUNG_AGE="3"
+  )
+
+Run_DESeq2_Pseudo_HEAD_Cells(
+  PSEUDO_INPUT=Pseudo_HEAD_Cells,
+  STRAIN="DGRP-551",
+  SEX="male",
+  OLD_AGE="30",
+  YOUNG_AGE="3"
+  )
+
+Run_DESeq2_Pseudo_HEAD_Cells(
+  PSEUDO_INPUT=Pseudo_HEAD_Cells,
+  STRAIN="DGRP-551",
+  SEX="male",
+  OLD_AGE="50",
+  YOUNG_AGE="3"
+  )
+
+Run_DESeq2_Pseudo_HEAD_Cells(
+  PSEUDO_INPUT=Pseudo_HEAD_Cells,
+  STRAIN="w1118",
+  SEX="female",
+  OLD_AGE="30",
+  YOUNG_AGE="3"
+  )
+
+
+Run_DESeq2_Pseudo_HEAD_Cells(
+  PSEUDO_INPUT=Pseudo_HEAD_Cells,
+  STRAIN="w1118",
+  SEX="male",
+  OLD_AGE="30",
   YOUNG_AGE="3"
   )
 ```
