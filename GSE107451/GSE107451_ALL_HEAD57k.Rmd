@@ -100,7 +100,7 @@ heatmap_specific_cluster(EXPR_COUNT=count_Strain_Sex_Cellcluster_Age,
 set working directory and library package
 ```{r}
 
-## run at HiPerGator (HPG)
+## run at HiPerGator (HPG) if mem not enough
 setwd(getwd())  
 
 #This is the work.image saved on HPG
@@ -1514,7 +1514,7 @@ openxlsx::write.xlsx(DE_Cell_Cluster_III_Marker_Genes,
                      rowNames=F)
 ```
 
-generate the pseudo-bulk expression of heat map of III markers in cell types
+*#generate the pseudo-bulk expression of heat map of III markers in cell types
 ```{r}
 #obtain the pseudo-bulk expression of all genes in different cell clusters
 count_celltype <- as.data.frame(
@@ -1544,7 +1544,7 @@ View(count_celltype[rownames(count_celltype)%in%append(III_Marker_Genes,c("noe",
 
 ```
 
-Obtain Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
+*#Obtain Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
 ```{r}
 #extract the Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
 count_Strain_Sex_Cellcluster_Age <- as.data.frame(
@@ -1567,7 +1567,7 @@ table(str_split(colnames(count_Strain_Sex_Cellcluster_Age),pattern = "_",4,simpl
 #There is no day 0 and day 1 now
 ```
 
-make a function to plot heat map of genes at different Age in a specific cell cluster
+*#make a function to plot heat map of genes at different Age in a specific cell cluster
 ```{r}
 heatmap_specific_cluster <- function(EXPR_COUNT,GENELIST,STRAIN,SEX,CLUSTER_NAME,AGES,TITLE) {
   tmp_count <- EXPR_COUNT[,str_split(colnames(EXPR_COUNT),pattern = "_",4,simplify =T)[,1]==STRAIN];
@@ -1653,6 +1653,42 @@ dev.off()
 ####
 ```
 
+Objective 1.3 Which increased or decreased
+# Generate pseudobulk dataframe (rownames genes, colnames cells)
+```{r}
+
+Pseudo_HEAD_Cells <- as.data.frame(
+  GetAssayData(ALL_HEAD_57k3,layer = "counts")
+  )
+
+##Now format the colnames into CellID, Strain, sex, and Age
+
+#first check if colnames are in correct order
+table(
+  colnames(Pseudo_HEAD_Cells)==rownames(ALL_HEAD_57k3@meta.data)
+  )
+# TRUE 
+56902 
+
+
+
+#change colnames of Pseudo_HEAD_Cells
+colnames(Pseudo_HEAD_Cells) <- 
+  paste0(substr(ALL_HEAD_57k3@meta.data$new_barcode,1,16),
+         "__",
+         ALL_HEAD_57k3@meta.data$Genotype,
+         "__",
+         ALL_HEAD_57k3@meta.data$sex,
+         "__",
+         ALL_HEAD_57k3@meta.data$Age
+         )
+#Export the the converted Pseudobulk expression to local dir for DE
+openxlsx::write.xlsx(Pseudo_HEAD_Cells,
+                     "./data/Brain57k/Pseudo_HEAD_Cells_57k.xlsx",
+                     rowNames=F
+                     )
+
+```
 
 
 ##########################
