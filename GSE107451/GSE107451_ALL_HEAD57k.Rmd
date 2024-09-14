@@ -1758,7 +1758,7 @@ write.xlsx(res1[res1$'sig'=='down',],paste0("./DESeq_result/",File_Title,"_DOWN"
 
 Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE){
   #First remove genes containing just zero;
-  PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
+  #PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
   PSEUDO_INPUT <- na.omit(PSEUDO_INPUT);
   PSEUDO_INPUT <- PSEUDO_INPUT+1
   #First take the subset based on strain and sex
