@@ -2,111 +2,60 @@
 title: "R Notebook for GSE107451 57k dataset analysis"
 output: NA
 ---
-## this is the R script for the analysis of the head ScRNA-Seq data of the GSE107451 
+# this is the R script for the analysis of the head ScRNA-Seq data of the GSE107451 
 
-## Objectives: 
-
-#########################################################
-### 1. Monitor the expression pattern of the inflammaging markers across different cell types (clusters) and ages.
-### 2. Identify which cell type(s) account for the inflammaging pattern observed in whole head sampesl.
-#### 2.1 Calculate aggregated expression for individual cluster - function to extract expression of a gene in a particular cluster.
-#### 2.2 Identify which cell cluster demonstrate inflammaging pattern.
-#### 2.3 Evaluate how each cell type contributes to the inflammaging pattern observed in whole head samples.
-### 3. Identify if the percentage of cells expressing a certain III marker is increased across ages
-### 4. Identify if there is a change in the percentage of plasmatocytes in different strains across ages
+# Objectives: 
+# 1.1 does the scRNA-Seq data agree with bulk RNA-Seq data? 
+# 1.2 which cells in the brain express the IMs? Is it the hemocytes? 
+# 1.3 which one shows age-dependent increase or decrease? (Based on 1.1, 1.2 result, in plasmatocytes)? 
+# 2.1 Calculate aggregated expression for individual cluster - function to extract expression of a gene in a particular cluster.
+# 2.2 Evaluate how each cell type contributes to the inflammaging pattern observed in whole head samples. (TBD based on result in objective 1.2)
+# 3. Identify if the percentage of cells expressing a certain III marker is increased across ages
+# 4. Identify if there is a change in the percentage of plasmatocytes in different strains across ages
 
 
-## Dataset
-### GSE107451 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE107451 
-### we download the GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv.tar.gz 
-### we used Author's annotation as metadata of this analysis: GSE107451_DGRP-551_w1118_WholeBrain_57k_Metadata.tsv.gz
-### which was based on analysis down by the authors of the paper 
-### A Single-Cell Transcriptome Atlas of the Aging Drosophila Brain. 
-###  - Cell 2018 Aug 9;174(4):982-998.e20. PMID: 29909982
-###  - https://pubmed.ncbi.nlm.nih.gov/29909982/
-### For analysis of scRNAseq data, Seurat V5 is used. For more information, check https://satijalab.org/seurat/, and https://satijalab.org/seurat/articles/install.html for specific instruction on installation.
+# Dataset
+## GSE107451 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE107451 
+## we download the GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv.tar.gz 
+## we used Author's annotation as metadata of this analysis: GSE107451_DGRP-551_w1118_WholeBrain_57k_Metadata.tsv.gz
+## which was based on analysis down by the authors of the paper 
+## A Single-Cell Transcriptome Atlas of the Aging Drosophila Brain. 
+##  - Cell 2018 Aug 9;174(4):982-998.e20. PMID: 29909982
+##  - https://pubmed.ncbi.nlm.nih.gov/29909982/
+## For analysis of scRNAseq data, Seurat V5 is used. For more information, check https://satijalab.org/seurat/, and https://satijalab.org/seurat/articles/install.html for specific instruction on installation.
 
 
-## Functions written, primarily used for analyzing this dataset
-###count_cells_subset
-####a function to see number of cells in different Strains, Sex at different Ages
-#### Example usage:
-#### To get the number of cells for a specific strain, sex, age, and cell cluster:
-count_cells_subset(seurat_obj=ALL_HEAD_57k3,
-                                  strain = "DGRP-551",
-                                  sex = "female",
-                                  age = "50",
-                                  cell_cluster = "Plasmatocytes")
-###calculate_gene_expression_percentage
-#### calculate the persentage of cells expressing different genes within a subset of a seurat object of a certain Strain, Sex, Cluster, and Age 
-#### Example usage:
-calculate_gene_expression_percentage(
-  seurat_obj=ALL_HEAD_57k3,
-  genes=III_Marker_Genes, 
-  strain = "DGRP-551", 
-  Sex = "female", 
-  cluster = "Plasmatocytes", 
-  ages = c(3,6,9,15,30,50)
-  )
-###calculate_cell_percentage
-#### A function to determine the persentage of plasmatocytes of a specific Strain, sex at different ages
-#### Example usage
-calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                          cell_types = c("Plasmatocytes"),
-                          strains =c("DGRP-551", "w1118"),
-                          sexes = c("female", "male")
-                          )
-###plot_percentage
-####Barplot of percentage of Plasmatocytes across different ages
-#### Example usage
-#### Barplot of DGRP-551_female_Plasmatocytes
-plot_percentage(calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                                          cell_types = c("Plasmatocytes"),
-                                          strains =c("DGRP-551", "w1118"),
-                                          sexes = c("female", "male")
-                                          ),
-                Strain = "DGRP-551",
-                Cell_type = "Plasmatocytes", 
-                Sex = "female"
-                )
-###make_heatmap
-####heatmap of pseudo bulk expression to compare with our BulkRNAseq
-####Example usage
-####count_DGRP551_female
-make_heatmap(EXPR_OBJ = count_DGRP551_female[,-c(1:2)],
-             GENELIST = III_Marker_Genes,
-             TITLE = "DGRP551_female"
-             )
-###heatmap_specific_cluster
-####a function to plot heat map of genes at different Age in a specific cell cluster
-####Example Usage
-####Plasmatocytes_DGRP-551_female
-heatmap_specific_cluster(EXPR_COUNT=count_Strain_Sex_Cellcluster_Age,
-                         GENELIST=III_Marker_Genes,
-                         STRAIN = "DGRP-551",
-                         SEX = "female",
-                         CLUSTER_NAME="Plasmatocytes",
-                         AGES = c("3","6","9","15","30","50"),
-                         TITLE = "III_Markers in Plasmatocytes DGRP-551 female"
-                         )
+# Functions written, primarily used for analyzing this dataset
+
+## count_cells_subset
+## a function to see number of cells in different Strains, Sex at different Ages
+
+## calculate_gene_expression_percentage
+## calculate the persentage of cells expressing different genes within a subset of a seurat object of a certain Strain, Sex, Cluster, and Age 
+
+## calculate_cell_percentage
+## A function to determine the persentage of plasmatocytes of a specific Strain, sex at different ages
+
+## plot_percentage
+## Barplot of percentage of Plasmatocytes across different ages
+
+## make_heatmap
+## heatmap of pseudo bulk expression to compare with our BulkRNAseq
+
+## heatmap_specific_cluster
+## a function to plot heat map of genes at different Age in a specific cell cluster
                          
-                         
-##Most important global variables:
-###ALL_HEAD_57k3: the seurat object for this analysis after every piece of information is aggregated into it. All Seurat plots are beased on this object.
-###count_DGRP551_female, count_DGRP551_male, count_w1118_female, and count_w1118_male: pseudo-bulk expression obtained to compare with our bulk-RNA data
-###count_celltype: pseudo-bulk expression of all genes in different cell clusters
-###count_Strain_Sex_Cellcluster_Age: Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age. This is the one used to explore III markers's expression in cluster like Plasmatocytes.
+# Most important global variables:
+## ALL_HEAD_57k3: the seurat object for this analysis after every piece of information is aggregated into it. All Seurat plots are beased on this object.
+## count_DGRP551_female, count_DGRP551_male, count_w1118_female, and count_w1118_male: pseudo-bulk expression obtained to compare with our bulk-RNA data
+## count_celltype: pseudo-bulk expression of all genes in different cell clusters
+## count_Strain_Sex_Cellcluster_Age: Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age. This is the one used to explore III markers's expression in cluster like Plasmatocytes.
 
-################################################
 set working directory and library package
 ```{r}
 
 ## run at HiPerGator (HPG) if mem not enough
 setwd(getwd())  
-
-#This is the work.image saved on HPG
-load("GSE107451_head_ALL_57k.RData")
-
 
 library(Seurat)
 library(ggplot2)
@@ -125,11 +74,17 @@ library(DESeq2)
 #BiocManager::install("EnhancedVolcano")
 ```
 
+Load work image
+```{r}
+#This is the work.image saved on local terminal
+load("GSE107451_head_ALL_57k.RData")
+```
+
 Import data and create Seurat object
 ```{r}
 
 #import barcode, matrix, and feature files obtained by cellranger under folder GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv
-ALL_HEAD_57k <- Seurat::Read10X("./GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv")
+ALL_HEAD_57k <- Seurat::Read10X("./raw_data/GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv")
 #create seurat object, setting minimum standard (57k is filtered dataset by author, no need to filter)
 ALL_HEAD_57k <- CreateSeuratObject(counts = ALL_HEAD_57k,
                                project = "ALL_HEAD_57k_GSE107451", 
@@ -139,7 +94,7 @@ ALL_HEAD_57k <- CreateSeuratObject(counts = ALL_HEAD_57k,
 View(ALL_HEAD_57k@meta.data)
 
 #import metadata of author's and add that to Seurat OBJ
-meta_author <- as.data.frame(fread("./GSE107451_DGRP-551_w1118_WholeBrain_57k_Metadata.tsv",header = T))
+meta_author <- as.data.frame(fread("./raw_data/GSE107451_DGRP-551_w1118_WholeBrain_57k_Metadata.tsv",header = T))
 #check number of cells in the 57k dataset
 table(rownames(ALL_HEAD_57k@meta.data)==meta_author$new_barcode)
 #TRUE 
@@ -224,7 +179,10 @@ III_Marker_Genes <- c("SPH93",
                       "Mtk",
                       "IM18",
                       "edin")
+```
 
+feature plot of Inflammaging markers
+```{r}
 #This is an easy loop to save feature plots of all the inflammaging markers
 for (i in 1:length(III_Marker_Genes)) {
   tmp <- Seurat::FeaturePlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature")
@@ -263,7 +221,7 @@ ggsave(Seurat::VlnPlot(ALL_HEAD_57k3, features = "noe",group.by = "Age")
 
 ```
 
-make patial feature plot of III markers in plasmatocyte
+make Dimplot of tSNE
 ```{r}
 
 #tSNE of the plasmatocytes cluster
@@ -275,8 +233,10 @@ DimPlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
         #label.size = 2,
         repel = TRUE)
 dev.off()
+```
 
-
+patial feature plot of III markers in plasmatocytes
+```{r}
 #partial feature plot of III markers in plasmatocytes cluster
 for (i in 1:length(III_Marker_Genes)) {
   tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
@@ -297,7 +257,10 @@ for (i in 1:length(III_Marker_Genes)) {
   )
   }
 
+```
 
+partial feature plot of III markers in plasmatocytes cluster and split by Age and/or strain sex
+```{r}
 #partial feature plot of III markers in plasmatocytes cluster and split by Age
 for (i in 1:length(III_Marker_Genes)) {
   tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
@@ -422,8 +385,8 @@ for (i in 1:length(III_Marker_Genes)) {
 }
 ```
 
-***test, find all markers, lowest standard
-#This is for objective 1.1
+objective 1.2 which cells in the brain express the IMs? Is it the hemocytes?
+find all markers, lowest standard
 ```{r}
 #change active idents in ALL_HEAD_57k3
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3@meta.data$annotation
@@ -455,7 +418,8 @@ openxlsx::write.xlsx(lowest_standard_markers_dotplot$data[lowest_standard_marker
 
 ```
 
-make a function to see number of cells in different Strains, Sex at different Ages
+
+make a function to see number of cells in different Strains, Sex at different Ages (for more information purpose)
 ```{r}
 #This is for making the heatmap later, because for example, if there is no day 50 cell in DGRP-551 male, 
 #then the heatmap will not show expression as its pseudo-bulk expression will not be calculated
@@ -526,6 +490,7 @@ nrow(
 openxlsx::write.xlsx(cell_numbers,"cell_numbers.xlsx",rowNames=F)
 ```
 
+objective 3. Identify if the percentage of cells expressing a certain III marker is increased across ages
 percentage expressing function
 ```{r}
 #calculate the persentage of cells expressing different genes within a subset of a seurat object of a certain Strain, Sex, Cluster, and Age 
@@ -716,7 +681,8 @@ nrow(
 )# 3 cells
 ```
 
-Look at number of cells in DGRP-551 and w1118
+
+Look at number of cells in DGRP-551 and w1118 (for more information purpose)
 ```{r}
 
 nrow(
@@ -750,7 +716,9 @@ nrow(
 
 ```
 
-#A function to determine the percentage of plasmatocytes of a specific Strain, sex at different ages
+
+objective 4. Identify if there is a change in the percentage of plasmatocytes in different strains across ages
+A function to determine the percentage of plasmatocytes of a specific Strain, sex at different ages
 ```{r}
 
 calculate_cell_percentage <- function(seurat_obj, cell_types, strains, sexes) {
@@ -805,6 +773,7 @@ openxlsx::write.xlsx(
   rowNames=F
 )
 ```
+
 
 Barplot of percentage of Plasmatocytes across different ages
 ```{r}
@@ -882,7 +851,9 @@ dev.off()
 
 ```
 
+
 Make Psuedo bulk count to compare with our BulkRNAseq***
+(This section does not have any statistical significance)
 ```{r}
 #***Comment: In Seurat v5, we encourage the use of the AggregateExpression function to perform pseudobulk analysis.
 #https://satijalab.org/seurat/articles/announcements.html
@@ -933,6 +904,7 @@ write.xlsx(count_w1118_male,"count_w1118_male_HEAD57k.xlsx",rowNames=T)
 ```
 
 heatmap of pseudo bulk expression to compare with our BulkRNAseq
+(This section does not have any statistical significance)
 ```{r}
 
 make_heatmap <- function(EXPR_OBJ,GENELIST,TITLE) {
@@ -1011,32 +983,9 @@ DE_w1118_male_Ages <- wilcoxauc(
   group_by ="Age")
 ```
 
-#(Continue) Objetive 1.1 does the scRNA-Seq data agree with bulk RNA0Seq data?
-Differential expression with presto package, 1vs1 comparison
+Objective 1.1 does the scRNA-Seq data agree with bulk RNA0Seq data?
+Differential expression with presto package, 1vs1 comparison; generates statistically significant DE results
 ```{r}
-#This area of code demonstrates the case where Sometimes, you don't want to test all groups in the dataset against all other groups. 
-#For instance, I want to compare only observations in group A to those in group B. This is achieved with the groups_use argument.
-
-
-#### These two code chunks are different in terms of the order of Age put into the function
-# View(
-#   wilcoxauc(
-#   subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
-#   group_by = "Age",
-#   groups_use = c("50","3"))
-#   )
-# 
-# 
-# View(
-#   wilcoxauc(
-#     subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
-#     group_by = "Age",
-#     groups_use = c("3","50"))
-# )
-#### The order of age put into function does not influence comparison result.
-
-
-
 #find the DEGs by comparing one age to another age
 
 #DGRP551_female day50 vs day3 and day30 vs day3
@@ -1121,6 +1070,7 @@ openxlsx::write.xlsx(DE_w1118_male_30vs3[DE_w1118_male_30vs3$feature%in%III_Mark
 ```
 
 #Objective 1.3, do IMs increase or decrease in plasmatocytes?
+Differential expression with presto package, 1vs1 comparison; generates statistically significant DE results
 ```{r}
 
 #find the DEGs by comparing one age to another age in Plasmatocytes
@@ -1208,8 +1158,7 @@ openxlsx::write.xlsx(DE_w1118_male_30vs3_Plasmatocytes[DE_w1118_male_30vs3_Plasm
 
 ```
 
-
-visualization of presto Differential expression result
+visualization of presto Differential expression result based on EnhancedVolcano package
 ```{r}
 
 ####The first part is volcano plot of all comparisons(i.e. not one Age vs another Age; it's a holistic comparison)
@@ -1237,7 +1186,7 @@ ggsave(EnhancedVolcano(DE_DGRP551_female,
                 typeConnectors = "open",
                 endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DE_DGRP551_female.pdf",
+       filename = "./results/DE_VolcanoPlot/DE_DGRP551_female.pdf",
        width = 15,
        height = 10)
 #DE_DGRP551_male
@@ -1264,7 +1213,7 @@ ggsave(EnhancedVolcano(DE_DGRP551_male,
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DE_DGRP551_male.pdf",
+       filename = "./results/DE_VolcanoPlot/DE_DGRP551_male.pdf",
        width = 15,
        height = 10)
 #DE_w1118_female
@@ -1291,7 +1240,7 @@ ggsave(EnhancedVolcano(DE_w1118_female,
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DE_w1118_female.pdf",
+       filename = "./results/DE_VolcanoPlot/DE_w1118_female.pdf",
        width = 15,
        height = 10)
 #DE_w1118_male
@@ -1318,7 +1267,7 @@ ggsave(EnhancedVolcano(DE_w1118_male,
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DE_w1118_male.pdf",
+       filename = "./results/DE_VolcanoPlot/DE_w1118_male.pdf",
        width = 15,
        height = 10)
 ####
@@ -1352,7 +1301,7 @@ ggsave(EnhancedVolcano(subset(DGRP551_female_50vs3,group=="50"),
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DGRP551_female_50vs3.pdf",
+       filename = "./results/DE_VolcanoPlot/DGRP551_female_50vs3.pdf",
        width = 15,
        height = 10)
 
@@ -1380,7 +1329,7 @@ ggsave(EnhancedVolcano(subset(DGRP551_female_30vs3,group=="30"),
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DGRP551_female_30vs3.pdf",
+       filename = "./results/DE_VolcanoPlot/DGRP551_female_30vs3.pdf",
        width = 15,
        height = 10)
 
@@ -1408,7 +1357,7 @@ ggsave(EnhancedVolcano(subset(DGRP551_male_50vs3,group=="50"),
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DGRP551_male_50vs3.pdf",
+       filename = "./results/DE_VolcanoPlot/DGRP551_male_50vs3.pdf",
        width = 15,
        height = 10)
 
@@ -1436,7 +1385,7 @@ ggsave(EnhancedVolcano(subset(DGRP551_male_30vs3,group=="30"),
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/DGRP551_male_30vs3.pdf",
+       filename = "./results/DE_VolcanoPlot/DGRP551_male_30vs3.pdf",
        width = 15,
        height = 10)
 
@@ -1464,7 +1413,7 @@ ggsave(EnhancedVolcano(subset(w1118_female_30vs3,group=="30"),
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/w1118_female_30vs3.pdf",
+       filename = "./results/DE_VolcanoPlot/w1118_female_30vs3.pdf",
        width = 15,
        height = 10)
 
@@ -1492,15 +1441,15 @@ ggsave(EnhancedVolcano(subset(w1118_male_30vs3,group=="30"),
                        typeConnectors = "open",
                        endsConnectors = "first"),
        device = "pdf",
-       filename = "./DE_VolcanoPlot/w1118_male_30vs3.pdf",
+       filename = "./results/DE_VolcanoPlot/w1118_male_30vs3.pdf",
        width = 15,
        height = 10)
 
 ```
 
 
-#Objective 1.2 (Another method)
-Find which cell type III Markers increased significantly in
+Objective 1.2 (Another method)
+Find which cell type III Markers increased significantly in based on presto package
 ```{r}
 #based on presto package that provides statistical significance on a holistic level of comparison for all cell clusters
 
@@ -1512,12 +1461,13 @@ DE_Cell_Cluster_III_Marker_Genes <- subset(DE_Cell_Cluster,DE_Cell_Cluster$featu
 View(DE_Cell_Cluster_III_Marker_Genes)
 #export the statistical result fo III markers for further analysis
 openxlsx::write.xlsx(DE_Cell_Cluster_III_Marker_Genes,
-                     "./data/Brain57k/DE_cell_cluster_result_III_Markers.xlsx",
+                     "./data/DE_cell_cluster_result_III_Markers.xlsx",
                      rowNames=F)
 ```
 
 
-*#generate the pseudo-bulk expression of heat map of III markers in cell types
+generate the pseudo-bulk expression of heat map of III markers in cell types
+(This section does not have statistical significance)
 ```{r}
 #obtain the pseudo-bulk expression of all genes in different cell clusters
 count_celltype <- as.data.frame(
@@ -1528,14 +1478,14 @@ ncol(count_celltype)
 #[1] 116
 
 #make a heat map of the pseudo-bulk expression of III markers in different cell types.
-pdf(file = "./Heatmap/III_Markers_Expression_cell_types.pdf",
+pdf(file = "./results/Heatmap/III_Markers_Expression_cell_types.pdf",
     width = 30,
     height = 15)
 make_heatmap(EXPR_OBJ = count_celltype, GENELIST = III_Marker_Genes, TITLE = "III Markers Expression in different cell types")
 dev.off()
 
 #make a heat map that include noe and pros for to debug
-pdf(file = "./Heatmap/III_Markers_Expression_cell_types_test.pdf",
+pdf(file = "./results/Heatmap/III_Markers_Expression_cell_types_test.pdf",
     width = 50,
     height = 50)
 make_heatmap(EXPR_OBJ = count_celltype, GENELIST = c("pros","noe"), TITLE = "III Markers Expression in different cell types")
@@ -1547,7 +1497,8 @@ View(count_celltype[rownames(count_celltype)%in%append(III_Marker_Genes,c("noe",
 
 ```
 
-*#Obtain Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
+Obtain Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
+(This section does not have statistical significance)
 ```{r}
 #extract the Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
 count_Strain_Sex_Cellcluster_Age <- as.data.frame(
@@ -1570,7 +1521,7 @@ table(str_split(colnames(count_Strain_Sex_Cellcluster_Age),pattern = "_",4,simpl
 #There is no day 0 and day 1 now
 ```
 
-*#make a function to plot heat map of genes at different Age in a specific cell cluster
+make a function to plot heat map of genes at different Age in a specific cell cluster
 ```{r}
 heatmap_specific_cluster <- function(EXPR_COUNT,GENELIST,STRAIN,SEX,CLUSTER_NAME,AGES,TITLE) {
   tmp_count <- EXPR_COUNT[,str_split(colnames(EXPR_COUNT),pattern = "_",4,simplify =T)[,1]==STRAIN];
@@ -1656,8 +1607,8 @@ dev.off()
 ####
 ```
 
-Objective 1.3 Which increased or decreased (compare with GSE130158)
-# Generate pseudobulk dataframe (rownames genes, colnames cells)
+Objective 1.3 Which increased or decreased (to be compared with GSE130158)
+Generate pseudobulk dataframe (rownames genes, colnames cells)
 ```{r}
 
 Pseudo_HEAD_Cells <- as.data.frame(
@@ -1692,7 +1643,7 @@ openxlsx::write.xlsx(Pseudo_HEAD_Cells,
                      )
 ```
 
-#library the DE_DEseq function
+library the DE_DEseq function (see star_DEseq protocol on onedrive)
 ```{r}
 Do_DEseq <- 
   function(Counts_matrix,
@@ -1744,10 +1695,10 @@ write.xlsx(res1[res1$'sig'=='down',],paste0("./DESeq_result/",File_Title,"_DOWN"
 ```
 
 
-#Make a function to Run DESeq2 for Pseudo_HEAD_Cells
-#This function is dependent on DO_DEseq function in DEseq2_Differential_Expression_Feb22_2024.docx on OneDrive
-#This function is solely written for objectice 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data
-#For instance, comparisons like day 50 vs day 3 for DGRP-551 female
+Make a function to Run DESeq2 for Pseudo_HEAD_Cells.
+This function is dependent on DO_DEseq function in DEseq2_Differential_Expression_Feb22_2024.docx on OneDrive.
+This function is solely written for objectice 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data.
+For instance, comparisons like day 50 vs day 3 for DGRP-551 female.
 ```{r}
 #Colnames are CellID, Strain, sex, and Age connected with "__"
 # 
@@ -1783,7 +1734,7 @@ Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_A
 }                                              
 ```
 
-#test Run_DESeq2_Pseudo_HEAD_Cells function Using Universally acknowledged thresholds: p<0.05 and log2FC>1 (or you can manually select based on P value in .xlsx that contains both up and down)
+Run_DESeq2_Pseudo_HEAD_Cells function Using Universally acknowledged thresholds: p<0.05 and log2FC>1 (or you can manually select based on P value in .xlsx that contains both up and down)
 ```{r}
 #This comparison below took 8 minutes
 Run_DESeq2_Pseudo_HEAD_Cells(
@@ -1837,7 +1788,6 @@ Run_DESeq2_Pseudo_HEAD_Cells(
 ```
 
 
-##########################
 save work image
 ```{r}
 save.image("GSE107451_head_ALL_57k.RData")
