@@ -3,6 +3,8 @@
 DownloadedFiles/
 DwnFiles/
 test/
+raw_data/
+
 
 # History files
 .Rhistory
