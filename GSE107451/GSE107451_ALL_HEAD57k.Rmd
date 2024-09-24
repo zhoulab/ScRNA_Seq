@@ -148,7 +148,7 @@ ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings[,
 
 
 #tSNE plot of cell clusters based on author's annotation
-pdf(paste0("./Dimplot/ALL_HEAD_57k_tSNE.pdf"),width = 30,height = 20)
+pdf(paste0("./results/Dimplot/ALL_HEAD_57k_tSNE.pdf"),width = 30,height = 20)
 DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster",group.by = "annotation",
         label = TRUE,
         label.size = 5,
@@ -156,7 +156,7 @@ DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster",group.by =
 dev.off()
 
 #tSNE plot of different ages based on author's annotation
-pdf(paste0("./Dimplot/ALL_HEAD_57k_tSNE_days.pdf"),width = 15,height = 10)
+pdf(paste0("./results/Dimplot/ALL_HEAD_57k_tSNE_days.pdf"),width = 15,height = 10)
 DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster", group.by = "Age")
 dev.off()
 
@@ -1612,33 +1612,18 @@ Generate pseudobulk dataframe (rownames genes, colnames cells)
 ```{r}
 
 Pseudo_HEAD_Cells <- as.data.frame(
-  GetAssayData(ALL_HEAD_57k3,layer = "counts")
+  AggregateExpression(ALL_HEAD_57k3,
+                      assays = "RNA",
+                      group.by = c("Genotype","sex","Age","Replicate")
+                      )$RNA
   )
 
-##Now format the colnames into CellID, Strain, sex, and Age
+dim(Pseudo_HEAD_Cells)
+#17473    52
 
-#first check if colnames are in correct order
-table(
-  colnames(Pseudo_HEAD_Cells)==rownames(ALL_HEAD_57k3@meta.data)
-  )
-# TRUE 
-56902 
-
-
-
-#change colnames of Pseudo_HEAD_Cells
-colnames(Pseudo_HEAD_Cells) <- 
-  paste0(substr(ALL_HEAD_57k3@meta.data$new_barcode,1,16),
-         "__",
-         ALL_HEAD_57k3@meta.data$Genotype,
-         "__",
-         ALL_HEAD_57k3@meta.data$sex,
-         "__",
-         ALL_HEAD_57k3@meta.data$Age
-         )
 #Export the the converted Pseudobulk expression to local dir for DE
 openxlsx::write.xlsx(Pseudo_HEAD_Cells,
-                     "./data/Brain57k/Pseudo_HEAD_Cells_57k.xlsx",
+                     "./processed_data/Pseudo_HEAD_Cells_57k.xlsx",
                      rowNames=F
                      )
 ```
@@ -1685,11 +1670,26 @@ res1[which(res1$log2FoldChange <= -log2FC_thresh & res1$pvalue < p_thresh),'sig'
 res1[which(abs(res1$log2FoldChange) <= log2FC_thresh | res1$pvalue >= p_thresh),'sig'] <- 'none'
 
 
-write.xlsx(res1, paste0("./DESeq_result/",File_Title,".xlsx"),rowNames=T)
+print(
+  paste0(File_Title," up ","total DEGs: ",nrow(res1[res1$'sig'=='up',]))
+      )
+print(res1[res1$'sig'=='up',]
+      )
 
-write.xlsx(res1[res1$'sig'=='up',],paste0("./DESeq_result/",File_Title,"_UP",p_thresh,".xlsx"),rowNames=T)
+print(
+  paste0(File_Title," down ","total DEGs: ",nrow(res1[res1$'sig'=='down',]))
+      )
+print(res1[res1$'sig'=='down',]
+      )
 
-write.xlsx(res1[res1$'sig'=='down',],paste0("./DESeq_result/",File_Title,"_DOWN",p_thresh,".xlsx"),rowNames=T)
+
+write.xlsx(res1, paste0("./processed_data/DESeq_result/",File_Title,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='up',],paste0("./processed_data/DESeq_result/",File_Title,"_UP",p_thresh,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='down',],paste0("./processed_data/DESeq_result/",File_Title,"_DOWN",p_thresh,".xlsx"),rowNames=T)
+
+
 }
 
 ```
@@ -1702,22 +1702,25 @@ For instance, comparisons like day 50 vs day 3 for DGRP-551 female.
 ```{r}
 #Colnames are CellID, Strain, sex, and Age connected with "__"
 # 
-# which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "__",4,simplify =T)[,2]=="DGRP-551")
-#                           which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "__",4,simplify =T)[,3]=="female")
-#                                              which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "__",4,simplify =T)[,4]=="50")
+# which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,1]=="DGRP-551")
+#                           which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,2]=="female")
+#                                              which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,3]=="50")
+# 
+# which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,4]=="2")
+                                            
 
 
 Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE){
   #First remove genes containing just zero;
   #PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
-  PSEUDO_INPUT <- na.omit(PSEUDO_INPUT);
-  PSEUDO_INPUT <- PSEUDO_INPUT+1
+  #PSEUDO_INPUT <- na.omit(PSEUDO_INPUT);
+  #PSEUDO_INPUT <- PSEUDO_INPUT+1
   #First take the subset based on strain and sex
-  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "__",4,simplify =T)[,2]==STRAIN)];
-  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "__",4,simplify =T)[,3]==SEX)];
+  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,1]==STRAIN)];
+  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,2]==SEX)];
   #Obtain the index for old age and young age columns
-  index_old <- which(str_split(colnames(PSEUDO_INPUT),pattern = "__",4,simplify =T)[,4]==OLD_AGE);
-  index_young <- which(str_split(colnames(PSEUDO_INPUT),pattern = "__",4,simplify =T)[,4]==YOUNG_AGE);
+  index_old <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,3]==OLD_AGE);
+  index_young <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,3]==YOUNG_AGE);
   #Obtain the # of columns in each condition
   N_OLD <- length(index_old);
   N_YOUNG <- length(index_young);
@@ -1736,7 +1739,7 @@ Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_A
 
 Run_DESeq2_Pseudo_HEAD_Cells function Using Universally acknowledged thresholds: p<0.05 and log2FC>1 (or you can manually select based on P value in .xlsx that contains both up and down)
 ```{r}
-#This comparison below took 8 minutes
+#This comparison below took some time
 Run_DESeq2_Pseudo_HEAD_Cells(
   PSEUDO_INPUT=Pseudo_HEAD_Cells,
   STRAIN="DGRP-551",
