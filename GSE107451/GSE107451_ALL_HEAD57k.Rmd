@@ -1624,7 +1624,7 @@ dim(Pseudo_HEAD_Cells)
 #Export the the converted Pseudobulk expression to local dir for DE
 openxlsx::write.xlsx(Pseudo_HEAD_Cells,
                      "./processed_data/Pseudo_HEAD_Cells_57k.xlsx",
-                     rowNames=F
+                     rowNames=T
                      )
 ```
 
