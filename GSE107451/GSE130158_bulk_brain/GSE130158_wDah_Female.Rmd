@@ -1,0 +1,159 @@
+---
+title: "GSE130158_wDah_Female"
+output: NA
+---
+
+
+```{r}
+setwd(getwd())
+
+library(openxlsx)
+library(DESeq2)
+library(data.table)
+```
+
+
+```{r}
+count_wDah_Female <- read.xlsx("GSE130158_Brain_count.xlsx",rowNames = T)
+
+colnames(count_wDah_Female)
+colnames(count_wDah_Female) <- c("D10_wDah_Female_Brain_r1",
+                                 "D10_wDah_Female_Brain_r2",
+                                 "D10_wDah_Female_Brain_r3",
+                                 "D30_wDah_Female_Brain_r1",
+                                 "D30_wDah_Female_Brain_r2",
+                                 "D30_wDah_Female_Brain_r3",
+                                 "D50_wDah_Female_Brain_r1",
+                                 "D50_wDah_Female_Brain_r2",
+                                 "D50_wDah_Female_Brain_r3")
+```
+
+map ID to gene symbol
+```{r}
+write.table(file = "./GSE130158_wDah_Female_ID.txt",
+            rownames(count_wDah_Female),
+            sep = ",",
+            quote = F,
+            col.names = F,
+            row.names = F
+            )
+```
+
+mapped with flybase ID validator
+```{r}
+ID2symbol <- fread("id_validation_table_122509.txt",header = T)
+
+
+table(rownames(count_wDah_Female)==ID2symbol$`#submitted_item`)
+
+table(duplicated(ID2symbol$current_symbol))
+
+#find the rows of unknown IDs 
+unknown_index <- which(ID2symbol$current_symbol=="-")
+
+#remove corresponding rows in ID2symbol and count
+ID2symbol <- ID2symbol[-unknown_index,]
+
+count_wDah_Female <- count_wDah_Female[-unknown_index,]
+```
+
+ID to symbol
+```{r}
+rownames(count_wDah_Female) <- ID2symbol$current_symbol
+```
+
+#export mapped count
+```{r}
+openxlsx::write.xlsx(count_wDah_Female,
+                     "count_wDah_Female_mapped.xlsx",
+                     rowNames=T)
+```
+
+Do_DEseq function
+```{r}
+Do_DEseq <- 
+  function(Counts_matrix,
+           n_TR,                # 
+           n_CR,                #
+           p_thresh,            #
+           log2FC_thresh,       #
+           File_Title){        #
+  # make meta for DEseq (make a variable that tells DEseq which columns are controls and which are treatment ones)
+  
+meta <- colnames(Counts_matrix)
+
+meta <- as.data.frame(meta)
+
+rownames(meta) <- meta[,1]
+
+  meta$"Condition" <- c(rep("TR",n_TR),rep("CR",n_CR))
+  
+  
+  meta$Condition <- factor(meta$Condition,levels = c("CR","TR"))
+  
+  # make the dds object for DEseq
+  
+  dds <- DESeqDataSetFromMatrix(countData = Counts_matrix,
+                              colData = meta,
+                              design= ~ Condition)
+  dds <- DESeq(dds)
+  res <- results(dds, pAdjustMethod = "BH")
+  
+  #extracting result
+  res1 <- data.frame(res, stringsAsFactors = FALSE, check.names = FALSE)
+
+  res1 <- na.omit(res1)
+res1 <- res1[order(res1$padj, res1$log2FoldChange, decreasing = c(FALSE, TRUE)), ]
+
+
+res1[which(res1$log2FoldChange >= log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'up'
+res1[which(res1$log2FoldChange <= -log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'down'
+res1[which(abs(res1$log2FoldChange) <= log2FC_thresh | res1$pvalue >= p_thresh),'sig'] <- 'none'
+
+
+print(
+  paste0(File_Title," up ","total DEGs: ",nrow(res1[res1$'sig'=='up',]))
+      )
+print(res1[res1$'sig'=='up',]
+      )
+
+print(
+  paste0(File_Title," down ","total DEGs: ",nrow(res1[res1$'sig'=='down',]))
+      )
+print(res1[res1$'sig'=='down',]
+      )
+
+
+write.xlsx(res1, paste0("./processed_data/DESeq_result/",File_Title,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='up',],paste0("./processed_data/DESeq_result/",File_Title,"_UP",p_thresh,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='down',],paste0("./processed_data/DESeq_result/",File_Title,"_DOWN",p_thresh,".xlsx"),rowNames=T)
+}
+```
+
+Run DESeq for different comparisons
+```{r}
+colnames(count_wDah_Female)
+
+
+Do_DEseq(Counts_matrix=count_wDah_Female[,c(4,5,6,1,2,3)],
+         n_TR=3,   
+         n_CR=3,   
+         p_thresh=0.05,  
+         log2FC_thresh=1,   
+         File_Title="wDah_Female_Brain30vs10")
+
+
+Do_DEseq(Counts_matrix=count_wDah_Female[,c(7,8,9,1,2,3)],
+         n_TR=3,   
+         n_CR=3,   
+         p_thresh=0.05,  
+         log2FC_thresh=1,   
+         File_Title="wDah_Female_Brain50vs10")
+
+
+```
+
+
+
