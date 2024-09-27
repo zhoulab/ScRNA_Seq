@@ -41,7 +41,7 @@ write.table(file = "./GSE130158_wDah_Female_ID.txt",
 
 mapped with flybase ID validator
 ```{r}
-ID2symbol <- fread("id_validation_table_122509.txt",header = T)
+ID2symbol <- fread("id_validation_table_6468.txt",header = T)
 
 
 table(rownames(count_wDah_Female)==ID2symbol$`#submitted_item`)
@@ -65,7 +65,7 @@ rownames(count_wDah_Female) <- ID2symbol$current_symbol
 #export mapped count
 ```{r}
 openxlsx::write.xlsx(count_wDah_Female,
-                     "count_wDah_Female_mapped.xlsx",
+                     "./processed_data/count_wDah_Female_mapped.xlsx",
                      rowNames=T)
 ```
 
