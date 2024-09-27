@@ -30,37 +30,87 @@ colnames(count_wDah_Female) <- c("D10_wDah_Female_Brain_r1",
 
 map ID to gene symbol
 ```{r}
-write.table(file = "./GSE130158_wDah_Female_ID.txt",
-            rownames(count_wDah_Female),
-            sep = ",",
-            quote = F,
-            col.names = F,
-            row.names = F
-            )
+# write.table(file = "./GSE130158_wDah_Female_ID.txt",
+#             rownames(count_wDah_Female),
+#             sep = ",",
+#             quote = F,
+#             col.names = F,
+#             row.names = F
+#             )
 ```
 
 mapped with flybase ID validator
 ```{r}
-ID2symbol <- fread("id_validation_table_6468.txt",header = T)
-
-
-table(rownames(count_wDah_Female)==ID2symbol$`#submitted_item`)
-
-table(duplicated(ID2symbol$current_symbol))
-
-#find the rows of unknown IDs 
-unknown_index <- which(ID2symbol$current_symbol=="-")
-
-#remove corresponding rows in ID2symbol and count
-ID2symbol <- ID2symbol[-unknown_index,]
-
-count_wDah_Female <- count_wDah_Female[-unknown_index,]
+# ID2symbol <- fread("id_validation_table_6468.txt",header = T)
+# 
+# 
+# table(rownames(count_wDah_Female)==ID2symbol$`#submitted_item`)
+# 
+# table(duplicated(ID2symbol$current_symbol))
+# 
+# #find the rows of unknown IDs 
+# unknown_index <- which(ID2symbol$current_symbol=="-")
+# 
+# #remove corresponding rows in ID2symbol and count
+# ID2symbol <- ID2symbol[-unknown_index,]
+# 
+# count_wDah_Female <- count_wDah_Female[-unknown_index,]
 ```
 
 ID to symbol
 ```{r}
-rownames(count_wDah_Female) <- ID2symbol$current_symbol
+# rownames(count_wDah_Female) <- ID2symbol$current_symbol
 ```
+
+
+
+
+try map with old funciton
+```{r}
+annotation_table <- fread("FBgn2Symbol.csv",header = F)
+count_wDah_Female$"ID" <- rownames(count_wDah_Female)
+
+ID_to_symbol <- function(expr_data){
+  df=expr_data
+  if(sum(colnames(df)=="gene_name", na.rm=TRUE)){
+    df$gene_name <- ""
+    for (i in 1:nrow(df)){
+      if(df$ID[i]%in%annotation_table$V1==TRUE){
+        df$gene_name[i] <-
+          annotation_table$V2[which(df$ID[i]==annotation_table$V1)]
+      }else{
+        df$gene_name[i] <- "No_map"
+      }
+    }
+    print(
+      paste(sum(df$gene_name=="No_map", na.rm=TRUE)," _unmapped",sum(df$gene_name!="No_map", na.rm=TRUE)," mapped")
+    );
+  }
+  else{
+    print("there is no column called 'gene_name', use df$gene_name <- ''");
+  }
+  return(df)
+}
+
+count_wDah_Female$gene_name <- ''
+
+count_wDah_Female <- ID_to_symbol(count_wDah_Female)
+
+
+#remove unmapped ID rows
+
+which(count_wDah_Female$gene_name=="No_map")
+count_wDah_Female <-
+  count_wDah_Female[-which(count_wDah_Female$gene_name=="No_map"),]
+
+
+rownames(count_wDah_Female) <- count_wDah_Female$gene_name
+
+count_wDah_Female <- count_wDah_Female[,-c(10,11)]
+```
+
+
+
 
 #export mapped count
 ```{r}
