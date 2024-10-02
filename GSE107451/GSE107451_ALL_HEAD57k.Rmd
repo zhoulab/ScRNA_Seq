@@ -1791,6 +1791,68 @@ Run_DESeq2_Pseudo_HEAD_Cells(
 ```
 
 
+plot log2FoldChange of genes in female vs male comparisons based on DESeq results, with shapes and colors indicating significance
+```{r}
+DESeq_DGRP551_female_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_female_50_vs_3.xlsx",
+                                                  rowNames = T)
+DESeq_DGRP551_male_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_male_50_vs_3.xlsx",
+                                                  rowNames = T)
+
+```
+
+
+```{r}
+# Load packages
+library(dplyr)
+library(ggplot2)
+
+# Merge the two DESeq results by gene symbol (rownames)
+res_female <- DESeq_DGRP551_female_50_vs_3 %>% as.data.frame() %>% rownames_to_column(var = "gene_symbol")
+res_male <- DESeq_DGRP551_male_50_vs_3 %>% as.data.frame() %>% rownames_to_column(var = "gene_symbol")
+
+# Rename columns with appropriate suffixes
+res_female <- res_female[,c(1,3,6)]
+colnames(res_female)[2:3] <- paste0(colnames(res_female)[2:3],"_female")
+
+res_male <- res_male[,c(1,3,6)]
+colnames(res_male)[2:3] <- paste0(colnames(res_male)[2:3],"_male")
+
+# Merge based on gene_symbol
+merged_res <- merge(res_female, res_male, by = "gene_symbol")
+
+# Define the shape for each gene based on significance
+merged_res <- merged_res %>%
+  mutate(shape_group = case_when(
+    pvalue_female < 0.05 & pvalue_male >= 0.05 ~ "Significant in female",
+    pvalue_female >= 0.05 & pvalue_male < 0.05 ~ "Significant in male",
+    pvalue_female < 0.05 & pvalue_male < 0.05 ~ "Significant in both",
+    TRUE ~ "Not significant"
+  ))
+
+
+# Define the color based on p-values (taking the minimum p-value for color representation); STC, because there are two p values
+merged_res <- merged_res %>%
+  mutate(min_pvalue = pmin(pvalue_female, pvalue_male))
+
+
+ggplot(merged_res, aes(x = log2FoldChange_female, y = log2FoldChange_male)) +
+  geom_point(aes(shape = shape_group, color = min_pvalue), size = 1) +
+  geom_text(aes(label = gene_symbol, max.overlaps = 2000), vjust = 1.5, hjust = 1, size =2, check_overlap = TRUE) +  # Add gene symbols
+  scale_shape_manual(values = c(4, 17, 15, 16)) +  # Customize shapes
+  scale_color_gradient(low = "blue", high = "red") +  # Color gradient based on p-value
+  labs(title = "Log2FoldChange: Female vs Male",
+       x = "log2FoldChange (Female)",
+       y = "log2FoldChange (Male)",
+       shape = "Significance",
+       color = "Min p-value") +
+  theme_minimal()+
+  xlim(-1,20) +  # Set x-axis range
+  ylim(-1,20)   # Set y-axis range
+  
+
+```
+
+
 save work image
 ```{r}
 save.image("GSE107451_head_ALL_57k.RData")
