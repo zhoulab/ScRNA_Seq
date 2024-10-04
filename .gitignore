@@ -63,4 +63,4 @@ rsconnect/
 *.tsv
 
 # extremely large pseudo bulk xlsx
-Pseudo_HEAD_Cells_clusters.xlsx
+/GSE107451/processed_data/Pseudo_HEAD_Cells_clusters.xlsx
