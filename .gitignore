@@ -61,3 +61,6 @@ rsconnect/
 
 # scRNA-seq data downloaded
 *.tsv
+
+# extremely large pseudo bulk xlsx
+Pseudo_HEAD_Cells_clusters.xlsx
