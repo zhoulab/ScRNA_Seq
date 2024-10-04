@@ -12,7 +12,9 @@ output: NA
 # 2.2 Evaluate how each cell type contributes to the inflammaging pattern observed in whole head samples. (TBD based on result in objective 1.2)
 # 3. Identify if the percentage of cells expressing a certain III marker is increased across ages
 # 4. Identify if there is a change in the percentage of plasmatocytes in different strains across ages
-
+# 5.1 Based on result of 1.1, which immune genes in GO_ImmuneDef.txt are up-regulated DEGs in this scRNA-Seq dataset on a pseudo bulk level? 
+# 5.2 In which clusters are these genes expressed in? 
+# 5.3 How much do they increase or decrease in these clusters with statistical significance. 
 
 # Dataset
 ## GSE107451 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE107451 
@@ -953,7 +955,7 @@ make_heatmap(EXPR_OBJ = count_w1118_male[,-c(1:2)],GENELIST = III_Marker_Genes,T
 dev.off()
 ```
 
-#This part is for Objective 1.1 does the scRNA-Seq data agree with bulk RNA0Seq data? 
+#This part is for Objective 1.1 does the scRNA-Seq data agree with bulk RNA-Seq data? 
 Differential expression with presto package (comparison of all ages, similar to the idea of findallmarkers)
 ```{r}
 #https://satijalab.org/seurat/articles/announcements.html (recommended by Seurat team)
@@ -1792,15 +1794,15 @@ Run_DESeq2_Pseudo_HEAD_Cells(
 
 
 plot log2FoldChange of genes in female vs male comparisons based on DESeq results, with shapes and colors indicating significance
+Import DESeq result of DGRP551
 ```{r}
 DESeq_DGRP551_female_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_female_50_vs_3.xlsx",
                                                   rowNames = T)
 DESeq_DGRP551_male_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_male_50_vs_3.xlsx",
                                                   rowNames = T)
-
 ```
 
-
+This section is TBD: An alternative way of plotting log2FoldChange apart from AGE Index
 ```{r}
 # Load packages
 library(dplyr)
@@ -1853,8 +1855,145 @@ ggplot(merged_res, aes(x = log2FoldChange_female, y = log2FoldChange_male)) +
 ```
 
 
+Objective 5.1 Based on result of 1.1, which immune genes in GO_ImmuneDef.txt are up-regulated DEGs in this scRNA-Seq dataset on a pseudo bulk level? 
+
+Import GO_ImmuneDef
+```{r}
+GO_ImmuneDef <- fread("./GO_ImmuneDef.txt",header = F)
+```
+
+Make a ranked gene list based on GO_ImmuneDef.txt and DESeq results sorted by padj.  
+```{r}
+View(
+  subset(DESeq_DGRP551_female_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_50_vs_3)%in%GO_ImmuneDef$V1)
+  )
+
+View(
+  subset(DESeq_DGRP551_male_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_50_vs_3)%in%GO_ImmuneDef$V1)
+  )
+
+write.xlsx(subset(DESeq_DGRP551_female_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_50_vs_3)%in%GO_ImmuneDef$V1),
+           rowNames=T,
+           "./processed_data/ranked_ImmuneGene_List/DGRP551_female_50_vs_3_ImmuneGene_List.xlsx")
+
+write.xlsx(subset(DESeq_DGRP551_male_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_50_vs_3)%in%GO_ImmuneDef$V1),
+           rowNames=T,
+           "./processed_data/ranked_ImmuneGene_List/DGRP551_male_50_vs_3_ImmuneGene_List.xlsx")
+```
+
+
+Objective 5.2 In which clusters are these genes expressed in? 
+
+First join target immune genes based on the two xlsx files exported above
+```{r}
+female_target_ImmuneGenes <- 
+  rownames(
+    subset(DESeq_DGRP551_female_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_50_vs_3)%in%GO_ImmuneDef$V1)
+    )
+
+male_target_ImmuneGenes <- 
+  rownames(
+    subset(DESeq_DGRP551_male_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_50_vs_3)%in%GO_ImmuneDef$V1)
+    )
+
+```
+
+Based on findallmarkers result, determine the percentage expression of these immune genes in different clusters. Potential clusters can be identified.
+
+female
+```{r}
+
+Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
+
+#dotplot of female_target_ImmuneGenes
+female_target_ImmuneGenes_dotplot <- DotPlot(ALL_HEAD_57k3, features = female_target_ImmuneGenes,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+
+#export dotplot of female_target_ImmuneGenes
+pdf("./results/Dotplot/female_target_ImmuneGenes_dotplot.pdf",
+    width = 25,
+    height = 6)
+female_target_ImmuneGenes_dotplot
+dev.off()
+
+#export dotplot data () of female_target_ImmuneGenes
+openxlsx::write.xlsx(female_target_ImmuneGenes_dotplot$data[female_target_ImmuneGenes_dotplot$data$features.plot%in%female_target_ImmuneGenes,],
+                     "./processed_data/lowest_standard_markers_female_target_ImmuneGenes.xlsx",
+                     rowNames=F)
+```
+
+male
+```{r}
+
+#dotplot of male_target_ImmuneGenes
+male_target_ImmuneGenes_dotplot <- DotPlot(ALL_HEAD_57k3, features = male_target_ImmuneGenes,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+
+#export dotplot of male_target_ImmuneGenes
+pdf("./results/Dotplot/male_target_ImmuneGenes_dotplot.pdf",
+    width = 25,
+    height = 6)
+male_target_ImmuneGenes_dotplot
+dev.off()
+
+#export dotplot data () of male_target_ImmuneGenes
+openxlsx::write.xlsx(male_target_ImmuneGenes_dotplot$data[male_target_ImmuneGenes_dotplot$data$features.plot%in%male_target_ImmuneGenes,],
+                     "./processed_data/lowest_standard_markers_male_target_ImmuneGenes.xlsx",
+                     rowNames=F)
+```
+
+
+
+Objective 5.3 How much do they increase or decrease in these clusters with statistical significance. 
+
+Use Aggregate Expression function to split psudo count by strain, sex, age, replicate, and cluster.
+```{r}
+# 
+# Pseudo_HEAD_Cells_clusters <- as.data.frame(
+#   AggregateExpression(ALL_HEAD_57k3,
+#                       assays = "RNA",
+#                       group.by = c("Genotype","sex","Age","Replicate","annotation")
+#                       )$RNA
+#   )
+
+# 
+# dim(Pseudo_HEAD_Cells_clusters)
+# 
+# #Export the the converted Pseudobulk expression to local dir for DE
+# openxlsx::write.xlsx(Pseudo_HEAD_Cells_clusters,
+#                      "./processed_data/Pseudo_HEAD_Cells_clusters.xslx",
+#                      rowNames=T
+#                      )
+
+
+
+
+#Error: vector memory limit of 32.0 Gb reached, see mem.maxVSize()
+#not able to split.
+#Try with HPG. script + ALL_HEAD_57k3.rds
+
+saveRDS(ALL_HEAD_57k3,"./ALL_HEAD_57k3.rds")
+
+#76 GB memory was used (all of them), and R session almost ended (75.4GB...)
+#exported result as Pseudo_HEAD_Cells_clusters.xslx on HPG
+
+```
+
+make a function
+```{r}
+
+```
+
+Run the function to obtain DESeq statistical results
+```{r}
+
+```
+
+
 save work image
 ```{r}
-save.image("GSE107451_head_ALL_57k.RData")
+save.image("./GSE107451_head_ALL_57k.RData")
 ```
 
