@@ -1697,7 +1697,7 @@ write.xlsx(res1[res1$'sig'=='down',],paste0("./processed_data/DESeq_result/",Fil
 ```
 
 
-Make a function to Run DESeq2 for Pseudo_HEAD_Cells.
+Make a function to Run DESeq2 for Pseudo_HEAD_Cells variable.
 This function is dependent on DO_DEseq function in DEseq2_Differential_Expression_Feb22_2024.docx on OneDrive.
 This function is solely written for objectice 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data.
 For instance, comparisons like day 50 vs day 3 for DGRP-551 female.
@@ -1979,16 +1979,86 @@ saveRDS(ALL_HEAD_57k3,"./ALL_HEAD_57k3.rds")
 #76 GB memory was used (all of them), and R session almost ended (75.4GB...)
 #exported result as Pseudo_HEAD_Cells_clusters.xslx on HPG
 
+#import the result done on HPG
+
+Pseudo_HEAD_Cells_clusters <- read.xlsx("./large_file/Pseudo_HEAD_Cells_clusters.xlsx",rowNames = T)
+
+colnames(Pseudo_HEAD_Cells_clusters)
 ```
 
-make a function
+make a function to conduct statistical analysis
 ```{r}
+Run_DESeq2_Pseudo_HEAD_Cells_clusters <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE,CLUSTER){
+  #First remove genes containing just zero;
+  #PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
+  #PSEUDO_INPUT <- na.omit(PSEUDO_INPUT);
+  #PSEUDO_INPUT <- PSEUDO_INPUT+1
+  #First take the subset based on strain and sex and cluster
+  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,1]==STRAIN)];
+  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,2]==SEX)];
+  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,5]==CLUSTER)];
+  #Obtain the index for old age and young age columns
+  index_old <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,3]==OLD_AGE);
+  index_young <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,3]==YOUNG_AGE);
+  #Obtain the # of columns in each condition
+  N_OLD <- length(index_old);
+  N_YOUNG <- length(index_young);
+  
+  #Run DO_DEseq function to generate results to ./DESeq_result dir
+  Do_DEseq(Counts_matrix=cbind(PSEUDO_INPUT[,index_old],PSEUDO_INPUT[,index_young]), #select the columns in readcount matrix and select treatment sample first then control samples
+           n_TR=N_OLD,   #number of treatment sample             
+           n_CR=N_YOUNG,    #number of control sample            
+           p_thresh=0.05,         #p value threshold   
+           log2FC_thresh=1,       #log2 fold change threshold
+           File_Title=paste0("DESeq_",STRAIN,"_",SEX,"_",OLD_AGE,"_vs_",YOUNG_AGE,"_In_Cluster_",CLUSTER)
+           )  #xlsx file title
 
+}          
 ```
 
 Run the function to obtain DESeq statistical results
 ```{r}
+Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
+                                      STRAIN="DGRP-551",
+                                      SEX="female",
+                                      OLD_AGE="30",
+                                      YOUNG_AGE="3",
+                                      CLUSTER="Plasmatocytes")
 
+Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
+                                      STRAIN="DGRP-551",
+                                      SEX="female",
+                                      OLD_AGE="50",
+                                      YOUNG_AGE="3",
+                                      CLUSTER="Plasmatocytes")
+
+Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
+                                      STRAIN="DGRP-551",
+                                      SEX="male",
+                                      OLD_AGE="30",
+                                      YOUNG_AGE="3",
+                                      CLUSTER="Plasmatocytes")
+
+Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
+                                      STRAIN="DGRP-551",
+                                      SEX="male",
+                                      OLD_AGE="50",
+                                      YOUNG_AGE="3",
+                                      CLUSTER="Plasmatocytes")
+
+Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
+                                      STRAIN="w1118",
+                                      SEX="female",
+                                      OLD_AGE="30",
+                                      YOUNG_AGE="3",
+                                      CLUSTER="Plasmatocytes")
+
+Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
+                                      STRAIN="w1118",
+                                      SEX="male",
+                                      OLD_AGE="30",
+                                      YOUNG_AGE="3",
+                                      CLUSTER="Plasmatocytes")
 ```
 
 
