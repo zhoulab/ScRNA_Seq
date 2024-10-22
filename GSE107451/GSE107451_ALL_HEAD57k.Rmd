@@ -2189,45 +2189,88 @@ plot_gene_expression_before_after(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 ```
 
+Generate for DGRP551 female/male target_ImmuneGenes and IMs
+```{r}
+#female_target_ImmuneGenes
+for (i in 1:length(female_target_ImmuneGenes)) {
+  tmp <- plot_gene_expression_before_after(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                                  gene = female_target_ImmuneGenes[i],
+                                  genotype = "DGRP-551",
+                                  sex = "female", 
+                                  young_age = 3, 
+                                  old_age = 50
+                                  );
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_target_ImmuneGenes_plot/Expression_change_DGRP-551_female_day3_day50_",female_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
+}
+
+#male_target_ImmuneGenes
+for (i in 1:length(male_target_ImmuneGenes)) {
+  tmp <- plot_gene_expression_before_after(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                                  gene = male_target_ImmuneGenes[i],
+                                  genotype = "DGRP-551",
+                                  sex = "male", 
+                                  young_age = 3, 
+                                  old_age = 50
+                                  );
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_target_ImmuneGenes_plot/Expression_change_DGRP-551_male_day3_day50_",male_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
+}
+
+#female IMs
+for (i in 1:length(III_Marker_Genes)) {
+  tmp <- plot_gene_expression_before_after(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                                  gene = III_Marker_Genes[i],
+                                  genotype = "DGRP-551",
+                                  sex = "female", 
+                                  young_age = 3, 
+                                  old_age = 50
+                                  );
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_IMs/Expression_change_DGRP-551_female_day3_day50_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
+}
+
+#male IMs
+for (i in 1:length(III_Marker_Genes)) {
+  tmp <- plot_gene_expression_before_after(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                                  gene = III_Marker_Genes[i],
+                                  genotype = "DGRP-551",
+                                  sex = "male", 
+                                  young_age = 3, 
+                                  old_age = 50
+                                  );
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_IMs/Expression_change_DGRP-551_male_day3_day50_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
+}
+
+```
 
 barplot function 
 ```{r}
 
 # function to create bar plots for a specific gene
-plot_log2bars_Ages <- function(DATA, GENE, STRAIN, SEX, AGE1, AGE2) {
+plot_log2bars_Ages <- function(DATA, GENE, STRAIN, SEX, AGE1) {
   #first subset based on strain and sex
   DATA <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,1]==STRAIN)];
   DATA <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,2]==SEX)];
   
   #prepare data for two ages
   DATA_AGE1 <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,3]==AGE1)];
-  DATA_AGE2 <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,3]==AGE2)];
+  
+  #log2 tranformation
+  DATA_AGE1 <- log2(as.matrix(DATA_AGE1[GENE,]+1))
+  #rank row-wise    
+  DATA_AGE1 <- DATA_AGE1[, order(DATA_AGE1[1, ], decreasing = TRUE)];
+  DATA_AGE1 <- as.matrix(DATA_AGE1);
+  DATA_AGE1 <- t(DATA_AGE1)
   
   
-  
-  barplot(log2(as.matrix(DATA_AGE1[GENE,])),
-          xlim=c(0,20), 
+  barplot(DATA_AGE1,
+          xlim=c(0,50), 
           ylim=c(0,20),
-          width=0.2,
-          main=paste0("log2(Expression)"," at day ",AGE1," of ", GENE," in ",STRAIN," ",SEX), 
+          width=0.4,
+          main=paste0("log2(TPM)"," at day ",AGE1," of ", GENE," in ",STRAIN," ",SEX), 
           names.arg=str_split(colnames(DATA_AGE1),pattern = "_",4,simplify =T)[,4],
           ylab="log2Expression level", 
           xlab="Clusters",
           col=c("darkblue"),
-          cex.names=0.2,
-          las=2)
-  
-  
-  barplot(log2(as.matrix(DATA_AGE2[GENE,])),
-          xlim=c(0,20), 
-          ylim=c(0,20),
-          width=0.2,
-          main=paste0("log2(Expression)"," at day ",AGE2," of ", GENE," in ",STRAIN," ",SEX), 
-          names.arg=str_split(colnames(DATA_AGE2),pattern = "_",4,simplify =T)[,4],
-          ylab="log2Expression level", 
-          xlab="Clusters",
-          col=c("red"),
-          cex.names=0.2,
+          cex.names=0.4,
           las=2)
 }
 ```
@@ -2236,12 +2279,36 @@ plot_log2bars_Ages <- function(DATA, GENE, STRAIN, SEX, AGE1, AGE2) {
 Run the function above
 ```{r}
 #Run the function above
+
 plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
                    STRAIN = "DGRP-551",
                    SEX = "female",
                    GENE ="Dro",
-                   AGE1 ="50", 
-                   AGE2 ="30")
+                   AGE1 ="50")
+
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE ="Dro",
+                   AGE1 ="30")
+
+#try saving
+
+pdf(paste0("./results/Barplot/Barplot_DGRP551_female_Dro_day50.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE ="Dro",
+                   AGE1 ="50")
+dev.off()
+
+pdf(paste0("./results/Barplot/Barplot_DGRP551_female_Dro_day30.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE ="Dro",
+                   AGE1 ="30")
+dev.off()
 
 ```
 
