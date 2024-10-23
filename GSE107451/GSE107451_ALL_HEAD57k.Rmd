@@ -2292,23 +2292,98 @@ plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
                    GENE ="Dro",
                    AGE1 ="30")
 
-#try saving
+#try saving in a batch (loop)
 
-pdf(paste0("./results/Barplot/Barplot_DGRP551_female_Dro_day50.pdf"),width = 12,height = 6)
+#female_target_ImmuneGenes day 30
+for (i in 1:length(female_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day30.pdf"),width = 12,height = 6)
 plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
                    STRAIN = "DGRP-551",
                    SEX = "female",
-                   GENE ="Dro",
-                   AGE1 ="50")
-dev.off()
-
-pdf(paste0("./results/Barplot/Barplot_DGRP551_female_Dro_day30.pdf"),width = 12,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "female",
-                   GENE ="Dro",
+                   GENE =female_target_ImmuneGenes[i],
                    AGE1 ="30")
 dev.off()
+}
+
+#female_target_ImmuneGenes day 50
+for (i in 1:length(female_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day50.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE =female_target_ImmuneGenes[i],
+                   AGE1 ="50")
+dev.off()
+}
+
+
+#male_target_ImmuneGenes day 30
+for (i in 1:length(male_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day30.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =male_target_ImmuneGenes[i],
+                   AGE1 ="30")
+dev.off()
+}
+
+#male_target_ImmuneGenes day 50
+for (i in 1:length(male_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day50.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =male_target_ImmuneGenes[i],
+                   AGE1 ="50")
+dev.off()
+}
+
+
+#female IMs day 30
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_female_",III_Marker_Genes[i],"_day30.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="30")
+dev.off()
+}
+
+#female IMs day 50
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_female_",III_Marker_Genes[i],"_day50.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="50")
+dev.off()
+}
+
+
+#male IMs day 30
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_male_",III_Marker_Genes[i],"_day30.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="30")
+dev.off()
+}
+
+#male IMs day 50
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_male_",III_Marker_Genes[i],"_day50.pdf"),width = 12,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="50")
+dev.off()
+}
 
 ```
 
