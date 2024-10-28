@@ -2166,7 +2166,7 @@ plot_gene_expression_before_after <- function(df, gene, genotype, sex, young_age
       shape = "Cluster"#it is better to use shapes, colors are indeed easily to plot, looks better, but very difficult to distinguish
     )+
     scale_x_discrete(limits = c("Young Age", "Old Age"))+
-    scale_shape_manual(values=32:127, breaks = waiver(), na.value = NA)#use ?points and check pch value options
+    scale_shape_manual(values=c(33:127), breaks = waiver(), na.value = NA)#use ?points and check pch value options
 }
 
 # Example:
