@@ -2077,45 +2077,116 @@ Pseudo_HEAD_Genotype_Sex_Age_Cluster <- as.data.frame(
   )
 
 dim(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
+
+#export the count file
+
+write.xlsx(Pseudo_HEAD_Genotype_Sex_Age_Cluster,"./large_file/Pseudo_HEAD_Genotype_Sex_Age_Cluster.xlsx",rowNames=T)
 ```
 
-convert the dataframe above into TPM
+
+#import gtf file
 ```{r}
-# Function to convert counts to TPM with estimated gene lengths
-counts_to_tpm <- function(counts) {
-  # Ensure that row names (gene symbols) are provided
-  if (is.null(rownames(counts))) {
-    stop("Row names (gene symbols) must be provided in the count dataframe.")
-  }
-  
-  # Example gene length vector: replace this with real gene length data if available
-  # For now, we're assigning an arbitrary length (e.g., 1000 base pairs) to all genes
-  # Ideally, you'd use a function that retrieves real gene lengths, such as from a biomaRt query
-  gene_lengths <- rep(1000, nrow(counts)) # Adjust or replace with real lengths
-  
-  # Step 1: Calculate RPK (Reads Per Kilobase)
-  rpk <- counts / (gene_lengths / 1000)
-  
-  # Step 2: Normalize by library size (sum of RPK for each sample)
-  tpm <- t(t(rpk) / colSums(rpk)) * 1e6
-  
-  return(tpm)
+library(data.table)
+genes <- fread("./large_file/dmel-all-r6.16.gtf")
+setnames(genes, names(genes), c("chr","source","type","start","end","score","strand","phase","attributes") )
+
+# [optional] focus, for example, only on entries of type "gene", 
+# which will drastically reduce the file size
+genes <- genes[type == "gene"]
+
+# the problem is the attributes column that tends to be a collection
+# of the bits of information you're actually interested in
+# in order to pull out just the information I want based on the 
+# tag name, e.g. "gene_id", I have the following function:
+extract_attributes <- function(gtf_attributes, att_of_interest){
+  att <- strsplit(gtf_attributes, "; ")
+  att <- gsub("\"","",unlist(att))
+  if(!is.null(unlist(strsplit(att[grep(att_of_interest, att)], " ")))){
+    return( unlist(strsplit(att[grep(att_of_interest, att)], " "))[2])
+  }else{
+    return(NA)}
 }
 
-# Example usage:
-# Assuming 'counts_df' is your count dataframe with gene symbols as rownames
-TPM_HEAD_Genotype_Sex_Age_Cluster <- as.data.frame(
-  counts_to_tpm(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
-  )
+# this is how to, for example, extract the values for the attributes of interest (here: "gene_id")
+genes$gene_id <- unlist(lapply(genes$attributes, extract_attributes, "gene_id"))
+genes$gene_symbol <- unlist(lapply(genes$attributes, extract_attributes, "gene_symbol"))
+genes$gene_symbol <-substr(genes$gene_symbol,1,nchar(genes$gene_symbol)-1)
 
-#check if it is the correct TPM
+genes$gene_length <- abs(genes$end-genes$start)
 
-sum(TPM_HEAD_Genotype_Sex_Age_Cluster[,100])
-
-Pseudo_HEAD_Genotype_Sex_Age_Cluster[4,1]/sum(Pseudo_HEAD_Genotype_Sex_Age_Cluster[,1])*10^6==TPM_HEAD_Genotype_Sex_Age_Cluster[4,1]
+openxlsx::write.xlsx(genes,
+           "./processed_data/transformed_gtf/dmel616gtf.xlsx",
+           rowNames=F)
 ```
 
-The funciton to carry out goal in this section
+find joint genes in SOBJ and gtf file
+```{r}
+nrow(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
+nrow(genes)
+nrow(genes[genes$gene_symbol%in%rownames(Pseudo_HEAD_Genotype_Sex_Age_Cluster),])
+
+gene_SOBJ <- genes[genes$gene_symbol%in%rownames(Pseudo_HEAD_Genotype_Sex_Age_Cluster),]
+
+table(
+  gene_SOBJ$gene_symbol%in%rownames(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
+  )
+
+write.xlsx(gene_SOBJ,"./processed_data/transformed_gtf/gene_SOBJ.xlsx")
+```
+
+
+convert the dataframe above into TPM based on code snippet from Michael Love (DESeq2 developer)
+```{r}
+# Function to convert counts to TPM with estimated gene lengths
+count2TPM <- 
+  function(counts.mat,gene.length){
+    x <- counts.mat / gene.length
+    tpm.mat <- t( t(x) * 1e6 / colSums(x) )
+    }
+
+```
+
+#convert count to TPM; Import necessary files
+```{r}
+#import gene_SOBJ
+gene_SOBJ <- read.xlsx("./processed_data/transformed_gtf/gene_SOBJ.xlsx",colNames = T)
+#import Pseudo_HEAD_Genotype_Sex_Age_Cluster
+Pseudo_HEAD_Genotype_Sex_Age_Cluster <- read.xlsx("./large_file/Pseudo_HEAD_Genotype_Sex_Age_Cluster.xlsx",rowNames = T,colNames = T)
+
+#check if rownames are the same
+table(
+  gene_SOBJ$gene_symbol%in%rownames(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
+)
+
+
+# obatine ordered gene lengths
+ordered_gene_lengths <- gene_SOBJ$gene_length[match(rownames(Pseudo_HEAD_Genotype_Sex_Age_Cluster), gene_SOBJ$gene_symbol)]
+# Combine the target genes and their corresponding lengths into a new dataframe
+result_df_SOBJ <- data.frame(gene_symbol = rownames(Pseudo_HEAD_Genotype_Sex_Age_Cluster), gene_length = ordered_gene_lengths)
+```
+
+Run count2TPM
+```{r}
+TPM_HEAD_Genotype_Sex_Age_Cluster <- 
+  count2TPM(counts.mat = Pseudo_HEAD_Genotype_Sex_Age_Cluster,
+            gene.length = result_df_SOBJ$gene_length
+            )
+TPM_HEAD_Genotype_Sex_Age_Cluster <- as.data.frame(
+  TPM_HEAD_Genotype_Sex_Age_Cluster
+)
+
+#test colsum
+sum2(TPM_HEAD_Genotype_Sex_Age_Cluster$`DGRP-551_female_0_0`)
+
+#export the TPM file
+write.xlsx(TPM_HEAD_Genotype_Sex_Age_Cluster,
+           "./large_file/TPM_HEAD_Genotype_Sex_Age_Cluster.xlsx",
+           rowNames=T
+           )
+```
+
+
+The function to carry out goal in this section
 ```{r}
 plot_gene_expression_before_after <- function(df, gene, genotype, sex, young_age, old_age) {
   library(ggplot2)
