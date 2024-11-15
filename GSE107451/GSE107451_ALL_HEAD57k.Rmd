@@ -2409,7 +2409,7 @@ plot_gene_expression_before_after_4ages <- function(df,gene,genotype,sex,first_a
     geom_line() +
     theme_minimal() +
     labs(
-      title = paste0("Multi-Age Plot for Gene: ", gene),
+      title = paste0("Multi-Age Plot for Gene: ", gene," in ",genotype," ",sex),
       x = "Age Group",
       y = "log2(TPM) Expression Level",
       shape = "Cluster",
