@@ -16,7 +16,7 @@ output: html_notebook
 set wk dir and library packages
 ```{r}
 setwd(getwd())
-
+getwd()
 library(Seurat)
 library(ggplot2)
 library(cowplot)
@@ -30,37 +30,48 @@ library(clustree)
 library(remotes)
 library(data.table)
 library(ggrepel)
+```
 
+load saved wkimage if needed
+```{r}
 load("./MIDGUT_Elife_wkimage.RData")
 ```
 
 
-#creat a obj of III markers
+create a obj of III markers
 ```{r}
 III_Markers <- c("SPH93",
-                                                                          "CecA1",
-                                                                          "CecA2",
-                                                                          "AttA",
-                                                                          "AttB",
-                                                                          "AttC",
-                                                                          "DptA",
-                                                                          "DptB",
-                                                                          "Dro",
-                                                                          "Mtk",
-                                                                          "IM18",
-                                                                          "edin")
+                 "CecA1",
+                 "CecA2",
+                 "AttA",
+                 "AttB",
+                 "AttC",
+                 "DptA",
+                 "DptB",
+                 "Dro",
+                 "Mtk",
+                 "IM18",
+                 "edin")
 ```
 
 
 ```{r}
-Author_metadata <- fread("./GSE157775_data/GSE157775_cell_annotation.csv")
-MIDGUT_Elife <- readRDS("./GSE157775_data/GSE157775_sce.RDS")
+Author_metadata <- fread("./raw_data/GSE157775_cell_annotation.csv",header = T)
+MIDGUT_Elife <- readRDS("./raw_data/GSE157775_sce.RDS")
 
 #convert into seurat OBJ
 MIDGUT_Elife <- as.Seurat(MIDGUT_Elife)
 ```
 
-#aggregate metadata
+First check if cell IDs match
+```{r}
+table(
+  MIDGUT_Elife@meta.data$cellID%in%Author_metadata$cellID
+)
+```
+
+
+aggregate metadata
 ```{r}
 
 MIDGUT_Elife@meta.data$annotation <- Author_metadata$assigned_cell_type
