@@ -2186,6 +2186,49 @@ write.xlsx(TPM_HEAD_Genotype_Sex_Age_Cluster,
            )
 ```
 
+Generate the second input: number of cells in each combinations of Genotype_Sex_Age_Cluster (split by meta.data: "Genotype","sex","Age","annotation")
+```{r}
+extract_cell_counts <- function(seurat_obj, metadata_order) {
+  # Ensure column names in metadata are unique
+  colnames(seurat_obj@meta.data) <- make.unique(colnames(seurat_obj@meta.data))
+  
+  # Check that metadata_order is valid
+  if (!all(metadata_order %in% colnames(seurat_obj@meta.data))) {
+    stop("Some elements of metadata_order are not present in the Seurat object's metadata.")
+  }
+  
+  # Extract metadata and count cells in each unique combination
+  metadata <- seurat_obj@meta.data
+  metadata_grouped <- metadata %>%
+    group_by(across(all_of(metadata_order))) %>%
+    summarise(Cell_Count = n(), .groups = "drop")
+  
+  # Create column names in the format "Genotype_Sex_Age_Annotation"
+  metadata_grouped <- metadata_grouped %>%
+    mutate(Colname = paste(!!!syms(metadata_order), sep = "_"))
+  
+  # Create the output dataframe
+  output_df <- as.data.frame(t(metadata_grouped$Cell_Count))
+  colnames(output_df) <- metadata_grouped$Colname
+  
+  return(output_df)
+}
+
+#test to see if extraction is correct
+nrow(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"&Age=="3"&Genotype=="DGRP-551"&sex=="female")@meta.data)
+#[1] 20
+
+#it is correct
+
+# Usage example:
+cell_number_Genotype_Sex_Age_Cluster <- extract_cell_counts(ALL_HEAD_57k3, c("Genotype", "sex", "Age", "annotation"))
+
+#now export the information into processed data dir
+write.xlsx(cell_number_Genotype_Sex_Age_Cluster,
+           "./large_file/cell_number_Genotype_Sex_Age_Cluster.xlsx",
+           rowNames=F)
+```
+
 
 F2 before and after plot for 2 ages
 ```{r}
@@ -2336,90 +2379,111 @@ for (i in 1:length(III_Marker_Genes)) {
 
 F3 before and after plot for 4 ages (an extension of F2)
 ```{r}
-
-plot_gene_expression_before_after_4ages <- function(df,gene,genotype,sex,first_age,second_age,third_age,fourth_age,TOP_N_CLUSTERS) {
-  #print("reminder: first_age should be youngest; forth_age should be oldest")
-  library(ggplot2);
-  library(dplyr);
-  # Filter columns based on the provided inputs (genotype, sex, young and old ages)
-  pattern_first <- paste0(genotype, "_", sex, "_", first_age);
-  pattern_second <- paste0(genotype, "_", sex, "_", second_age);
-  pattern_third <- paste0(genotype, "_", sex, "_", third_age);
-  pattern_fourth <- paste0(genotype, "_", sex, "_", fourth_age);
+plot_gene_expression_before_after_4ages <- function(df, gene, genotype, sex, first_age, second_age, third_age, fourth_age, TOP_N_CLUSTERS, cell_number_df) {
+  library(ggplot2)
+  library(dplyr)
+  library(tidyr)
   
-  # Extract columns that match young and old age conditions
-  first_cols <- grep(pattern_first, colnames(df), value = TRUE);
-  second_cols <- grep(pattern_second, colnames(df), value = TRUE);
-  third_cols <- grep(pattern_third, colnames(df), value = TRUE);
-  fourth_cols <- grep(pattern_fourth, colnames(df), value = TRUE);
+  # Filter columns based on metadata inputs
+  pattern_first <- paste0(genotype, "_", sex, "_", first_age, "_")
+  pattern_second <- paste0(genotype, "_", sex, "_", second_age, "_")
+  pattern_third <- paste0(genotype, "_", sex, "_", third_age, "_")
+  pattern_fourth <- paste0(genotype, "_", sex, "_", fourth_age, "_")
   
-  # Ensure the same clusters are present in both ages
-  clusters_first <- sub(paste0("_", first_age), "", first_cols);
-  clusters_second <- sub(paste0("_", second_age), "", second_cols);
-  clusters_third <- sub(paste0("_", third_age), "", third_cols);
-  clusters_fourth <- sub(paste0("_", fourth_age), "", fourth_cols);
+  first_cols <- grep(pattern_first, colnames(df), value = TRUE)
+  second_cols <- grep(pattern_second, colnames(df), value = TRUE)
+  third_cols <- grep(pattern_third, colnames(df), value = TRUE)
+  fourth_cols <- grep(pattern_fourth, colnames(df), value = TRUE)
   
-  # Find the top 7 clusters of a gene's expression in fourth_age (oldest age)
-  df_tmp <- df[gene,];
-  df_tmp <- df_tmp[,fourth_cols];
-  df_tmp <- as.matrix(df_tmp);
-  df_tmp <- df_tmp[, order(df_tmp[1, ], decreasing = TRUE)];
-  #select first 12 clusters to show
-  df_tmp <- df_tmp[1:TOP_N_CLUSTERS];
-  df_tmp <- as.matrix(df_tmp);
-  df_tmp <- t(df_tmp);
+  # Ensure the same clusters are present
+  clusters_first <- sub(paste0("_", first_age), "", first_cols)
+  clusters_second <- sub(paste0("_", second_age), "", second_cols)
+  clusters_third <- sub(paste0("_", third_age), "", third_cols)
+  clusters_fourth <- sub(paste0("_", fourth_age), "", fourth_cols)
   
-  #renew variables of fourth_cols and clusters_fourth
-  fourth_cols <- grep(pattern_fourth, colnames(df_tmp), value = TRUE);
-  clusters_fourth <- sub(paste0("_", fourth_age), "", fourth_cols);
+  # Identify top n clusters by expression in the fourth_age
+  df_tmp <- df[gene, ]
+  df_tmp <- df_tmp[, fourth_cols]
+  df_tmp <- as.matrix(df_tmp)
+  df_tmp <- df_tmp[, order(df_tmp[1, ], decreasing = TRUE)]
+  df_tmp <- df_tmp[1:TOP_N_CLUSTERS]
+  df_tmp <- as.data.frame(df_tmp)
+  fourth_cols <- rownames(df_tmp)
+  clusters_fourth <- sub(paste0("_", fourth_age), "", fourth_cols)
   
-  #find common clusters among clusters_first, clusters_second, clusters_third, clusters_fourth
-  common_clusters <- intersect(clusters_first, clusters_second);
-  common_clusters <- intersect(common_clusters, clusters_third);
-  common_clusters <- intersect(common_clusters, clusters_fourth);
-  # Subset the data for the common clusters
-  first_cols_filtered <- first_cols[clusters_first %in% common_clusters];
-  second_cols_filtered <- second_cols[clusters_second %in% common_clusters];
-  third_cols_filtered <- third_cols[clusters_third %in% common_clusters];
-  fourth_cols_filtered <- fourth_cols[clusters_fourth %in% common_clusters];
+  # Find common clusters
+  common_clusters <- Reduce(intersect, list(clusters_first, clusters_second, clusters_third, clusters_fourth))
   
-  # Get expression values for the gene in young and old conditions
-  expression_first <- df[gene, first_cols_filtered];
-  expression_second <- df[gene, second_cols_filtered];
-  expression_third <- df[gene, third_cols_filtered];
-  expression_fourth <- df[gene, fourth_cols_filtered];
+  # Subset columns for common clusters
+  first_cols_filtered <- first_cols[clusters_first %in% common_clusters]
+  second_cols_filtered <- second_cols[clusters_second %in% common_clusters]
+  third_cols_filtered <- third_cols[clusters_third %in% common_clusters]
+  fourth_cols_filtered <- fourth_cols[clusters_fourth %in% common_clusters]
   
-  # Create a dataframe for plotting
+  # Prepare `cell_number_df` to include separate columns for metadata components
+  cell_number_df <- as.data.frame(t(cell_number_df))
+  colnames(cell_number_df) <- "Total_Cell_Count"
+  cell_number_df$Metadata <- rownames(cell_number_df)
+  cell_number_df <- cell_number_df %>%
+    separate(Metadata, into = c("Genotype", "Sex", "Age", "Cluster"), sep = "_")
+  
+  # Calculate the total cell count across all ages for each Genotype-Sex-Cluster combination
+  total_cell_counts <- cell_number_df %>%
+    group_by(Genotype, Sex, Cluster) %>%
+    summarise(Total_Cluster_Count_All_Ages = sum(Total_Cell_Count, na.rm = TRUE))
+  
+  # Join to calculate percentages
+  cell_number_df <- cell_number_df %>%
+    left_join(total_cell_counts, by = c("Genotype", "Sex", "Cluster")) %>%
+    mutate(Cell_Percentage = Total_Cell_Count / Total_Cluster_Count_All_Ages * 100)
+  
+  # Prepare data for plotting
+  expression_first <- df[gene, first_cols_filtered]
+  expression_second <- df[gene, second_cols_filtered]
+  expression_third <- df[gene, third_cols_filtered]
+  expression_fourth <- df[gene, fourth_cols_filtered]
+  
   plot_data <- data.frame(
-    Cluster = str_split(common_clusters,"_",3,simplify = T)[,3],
-    First_Age = log2(as.numeric(expression_first)+1),
-    Second_Age = log2(as.numeric(expression_second)+1),
-    Third_Age = log2(as.numeric(expression_third)+1),
-    Fourth_Age = log2(as.numeric(expression_fourth)+1)
-  );
-  # Mutate plot_data
-   plot_data_long <- plot_data %>%
-    pivot_longer(cols = c(First_Age, Second_Age, Third_Age, Fourth_Age), 
-                 names_to = "Age", values_to = "Expression") %>%
-    mutate(Age = factor(Age, levels = c("First_Age", "Second_Age", "Third_Age", "Fourth_Age"),labels = c(first_age, second_age, third_age, fourth_age)));  # Label ages
+    Cluster = sub(paste0("_", first_age), "", first_cols_filtered),
+    First_Age = log2(as.numeric(expression_first) + 1),
+    Second_Age = log2(as.numeric(expression_second) + 1),
+    Third_Age = log2(as.numeric(expression_third) + 1),
+    Fourth_Age = log2(as.numeric(expression_fourth) + 1)
+  )
   
-  # Create the plot using shapes for clusters
-  ggplot(plot_data_long, aes(x = Age, y = Expression, group = Cluster, shape = Cluster,color = Cluster)) +
-    geom_point(size = 3) +
-    geom_line() +
+  # Pivot for ggplot
+  plot_data_long <- plot_data %>%
+    pivot_longer(cols = c(First_Age, Second_Age, Third_Age, Fourth_Age),
+                 names_to = "Age", values_to = "Expression") %>%
+    mutate(Age = factor(Age, levels = c("First_Age", "Second_Age", "Third_Age", "Fourth_Age"),
+                        labels = c(first_age, second_age, third_age, fourth_age)));
+  #change colnames for merge
+  colnames(plot_data_long)[1] <- "Genotype_Sex_Cluster"
+  plot_data_long$"Genotype_Sex_Cluster_Age" <- paste0(plot_data_long$"Genotype_Sex_Cluster","_",plot_data_long$Age)
+    
+  cell_number_df$"Genotype_Sex_Cluster_Age" <- paste0(cell_number_df$Genotype,"_",cell_number_df$Sex,"_",cell_number_df$Cluster,"_",cell_number_df$Age);
+  #merge plot_data_long and cell_number_df
+  plot_data_long <- merge(plot_data_long,cell_number_df,by="Genotype_Sex_Cluster_Age")
+  plot_data_long <- plot_data_long[,-3];
+  colnames(plot_data_long)[7] <- "Age"
+  
+  
+  # Plot
+  ggplot(plot_data_long, aes(x = Age, y = Expression, group = Cluster, color = Cluster)) +
+    geom_line(size = 1) +
+    geom_point(aes(size = Cell_Percentage,stroke = Total_Cell_Count), shape = 21, fill = NA,alpha = 0.6) +
+    scale_size_continuous(name = "Cell Percentage (%)", range = c(2, 10)) +
+    #scale_color_discrete(name = "Cluster") +
+    #scale_size_continuous(name = "Total Cell Count (Thickness)", range = c(0.5, 2)) + # Add legend for stroke
     theme_minimal() +
     labs(
-      title = paste0("Multi-Age Plot for Gene: ", gene," in ",genotype," ",sex),
+      title = paste0("Multi-Age Plot for Gene: ", gene, " in ", genotype, " ", sex),
       x = "Age Group",
       y = "log2(TPM) Expression Level",
-      shape = "Cluster",
       color = "Cluster"
-    )+
-    scale_shape_manual(values=c(33:72,74:123,125:127),
-                       breaks = waiver(), 
-                       na.value = NA
-    );#use ?points and check pch value options
-   }
+    ) +
+    theme(legend.position = "right")
+}
 
 # Example:
 plot_gene_expression_before_after_4ages(
@@ -2431,10 +2495,134 @@ plot_gene_expression_before_after_4ages(
   second_age = 15,
   third_age = 30,
   fourth_age = 50,
-  TOP_N_CLUSTERS = 7
+  TOP_N_CLUSTERS = 7,
+  cell_number_df = cell_number_Genotype_Sex_Age_Cluster
   )
 
 ```
+
+
+F3_altered by chatGPT (potentially problematic; Ignore section for now; STC)
+F3 modification section: to include cell count percentage; still limit to top_n clusters with highest expression at day 50 (fourth_age)
+```{r}
+visualize_gene_expression <- function(df, gene_symbol, genotype, sex, first_age, second_age, third_age, fourth_age, cell_number_df, top_n) {
+  # Check that the required gene exists in the dataframe
+  if (!(gene_symbol %in% rownames(df))) {
+    stop("The specified gene is not found in the dataframe.")
+  }
+  
+  # Extract expression data for the specified gene
+  expression_data <- df[gene_symbol, , drop = FALSE]
+  
+  # Filter columns based on the specified metadata inputs
+  selected_cols <- colnames(expression_data)[grepl(paste0("^", genotype, "_", sex, "_(",
+                                                         first_age, "|", second_age, "|",
+                                                         third_age, "|", fourth_age, ")_"), 
+                                                   colnames(expression_data))]
+  if (length(selected_cols) == 0) {
+    stop("No matching columns found for the specified metadata inputs.")
+  }
+  
+  # Create a melted dataframe for ggplot
+  melted_df <- data.frame(
+    Metadata = selected_cols,
+    Expression = log2(as.numeric(expression_data[, selected_cols])+1)
+  )
+  melted_df <- melted_df %>%
+    separate(Metadata, into = c("Genotype", "Sex", "Age", "Cluster"), sep = "_") %>%
+    mutate(Age = factor(Age, levels = c(first_age, second_age, third_age, fourth_age))) %>%
+    unite("Metadata", c("Genotype", "Sex", "Age", "Cluster"), sep = "_", remove = FALSE) # Recreate Metadata
+  
+  # Ensure Metadata in cell_number_df matches melted_df
+  cell_number_df <- as.data.frame(t(cell_number_df))
+  colnames(cell_number_df) <- "Total_Cell_Count"
+  cell_number_df$Metadata <- rownames(cell_number_df)
+  
+  # Add the Total Cell Count for each Cluster (across all ages in cell_number_df)
+  melted_df <- melted_df %>%
+    left_join(cell_number_df, by = "Metadata") %>%
+    separate(Metadata, into = c("Genotype", "Sex", "Age", "Cluster"), sep = "_", remove = FALSE) %>%
+    group_by(Genotype, Sex, Cluster) %>%
+    mutate(
+      Total_Cluster_Count_All_Ages = sum(cell_number_df$Total_Cell_Count[
+        grepl(paste0("^", Genotype, "_", Sex, "_.*_", Cluster, "$"), cell_number_df$Metadata)
+      ], na.rm = TRUE), # Total for the cluster across all ages
+      Cell_Percentage = Total_Cell_Count / Total_Cluster_Count_All_Ages * 100, # Percentage for this specific age
+      Circle_Size = Cell_Percentage
+    )
+  
+  # Select top_n clusters with highest expression at the fourth_age
+  top_clusters <- melted_df %>%
+    filter(Age == fourth_age) %>%
+    group_by(Cluster) %>%
+    summarise(Mean_Expression = mean(Expression, na.rm = TRUE)) %>%
+    arrange(desc(Mean_Expression)) %>%
+    slice_head(n = top_n) %>%
+    pull(Cluster)
+  
+  # Filter data for the top clusters
+  melted_df <- melted_df %>%
+    filter(Cluster %in% top_clusters)
+  
+  # Explicitly set the Age order as 3, 15, 30, 50
+  melted_df$Age <- factor(melted_df$Age, levels = c(first_age, second_age, third_age, fourth_age))
+
+  # Visualization
+  p <- ggplot(melted_df, aes(x = Age, y = Expression, group = Cluster, color = Cluster)) +
+    geom_line(size = 1) +  # Line for clusters
+    geom_point(aes(size = Circle_Size), shape = 21, fill = NA) +  # Circles for data points
+    scale_size_continuous(name = "Cell Percentage (%)", range = c(2, 10)) +
+    scale_x_discrete(name = "Age") +  # Ensures Age order is as defined in factor
+    theme_minimal() +
+    labs(
+      title = paste("Expression of", gene_symbol, "across Ages (Top", top_n, "Clusters)"),
+      x = "Age",
+      y = "Expression"
+    ) +
+    theme(legend.position = "right")
+  
+  return(p)
+}
+
+p
+
+# Generate the plot for the top 7 clusters
+
+#debug
+ df = TPM_HEAD_Genotype_Sex_Age_Cluster 
+  gene_symbol = "Dro"
+  genotype = "DGRP-551" 
+  sex = "female"
+  first_age = "3" 
+  second_age = "15"
+  third_age = "30" 
+  fourth_age = "50"
+  cell_number_df = cell_number_Genotype_Sex_Age_Cluster
+  top_n = 7
+
+#see total cell numbers in Plasmatocytes DGRP female of all ages
+nrow(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"&Genotype=="DGRP-551"&sex=="female")@meta.data)
+#130
+
+#also 130 in melted_df
+
+#run the F3_altered as an example
+visualize_gene_expression(
+  df = TPM_HEAD_Genotype_Sex_Age_Cluster, 
+  gene_symbol = "Dro", 
+  genotype = "DGRP-551", 
+  sex = "female", 
+  first_age = "3", 
+  second_age = "15", 
+  third_age = "30", 
+  fourth_age = "50",
+  cell_number_df = cell_number_Genotype_Sex_Age_Cluster,
+  top_n = 7
+)
+
+
+```
+
 
 Generate F3 for DGRP551 female/male target_ImmuneGenes and IMs
 ```{r}

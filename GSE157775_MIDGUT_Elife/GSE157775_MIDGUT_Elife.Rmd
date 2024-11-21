@@ -38,7 +38,7 @@ load("./MIDGUT_Elife_wkimage.RData")
 ```
 
 
-create a obj of III markers
+create an obj of III markers
 ```{r}
 III_Markers <- c("SPH93",
                  "CecA1",
@@ -70,30 +70,47 @@ table(
 )
 ```
 
+For the scRNA-seq experiments, we used the wild-type WDah fly line and dissected whole midguts at young (~7d), mid-age (~30d) and old time-points (~60d)
 
-aggregate metadata
+Whole midguts from adult female flies were dissected in 1xPBS and fixed in a fixative solution 
+
+Drosophila melanogaster reference genome (BDGP6)
+
+format metadata; merge author's annotation with Seurat OBJ
 ```{r}
+merge_metadata <- function(seurat_obj, external_metadata, cell_id_col) {
+  # Extract the metadata from the Seurat object
+  seurat_metadata <- seurat_obj@meta.data
+  
+  # Merge the Seurat metadata with the external metadata
+  merged_metadata <- merge(
+    seurat_metadata, 
+    external_metadata, 
+    by = cell_id_col, 
+    all.x = TRUE
+  )
+  
+  # Ensure the rownames of the merged metadata match the original Seurat object
+  rownames(merged_metadata) <- merged_metadata[[cell_id_col]]
+  
+  # Replace the Seurat object's metadata with the merged metadata
+  seurat_obj@meta.data <- merged_metadata
+  
+  return(seurat_obj)
+}
 
-MIDGUT_Elife@meta.data$annotation <- Author_metadata$assigned_cell_type
+# Example usage:
+MIDGUT_Elife <- merge_metadata(MIDGUT_Elife, Author_metadata,cell_id_col = "cellID")
 
-MIDGUT_Elife@meta.data$Age <- Author_metadata$age
+```
 
-MIDGUT_Elife@meta.data$UMAP_1 <- Author_metadata$UMAP_1
-MIDGUT_Elife@meta.data$UMAP_2 <- Author_metadata$UMAP_2
-
-#no Sex information in this study
-
-
-View(MIDGUT_Elife@meta.data)
-
-Idents(MIDGUT_Elife) <- MIDGUT_Elife@meta.data$annotation
-
+change active ident to assigned_cell_type
+```{r}
+Idents(MIDGUT_Elife) <- MIDGUT_Elife@meta.data$assigned_cell_type
 ```
 
 #run standard pipeline of seurat
 ```{r}
-
-
 # run standard anlaysis workflow
 MIDGUT_Elife2 <- NormalizeData(MIDGUT_Elife)
 MIDGUT_Elife2 <- FindVariableFeatures(MIDGUT_Elife2)
@@ -123,11 +140,6 @@ MIDGUT_Elife2 <- FindNeighbors(MIDGUT_Elife2, dims = 1:30, reduction = "pca", ve
 
 MIDGUT_Elife2 <- FindClusters(MIDGUT_Elife2, resolution = 0.6, cluster.name = "MIDGUT_Elife_clusters")
 
-```
-
-#change active ident back to annotation
-```{r}
-Idents(MIDGUT_Elife) <- MIDGUT_Elife@meta.data$annotation
 ```
 
 
