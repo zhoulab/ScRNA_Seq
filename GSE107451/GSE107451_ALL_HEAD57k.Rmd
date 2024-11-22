@@ -2467,6 +2467,7 @@ plot_gene_expression_before_after_4ages <- function(df, gene, genotype, sex, fir
   plot_data_long <- plot_data_long[,-3];
   colnames(plot_data_long)[7] <- "Age"
   
+  plot_data_long$Age <- factor(plot_data_long$Age, levels = c(first_age, second_age, third_age, fourth_age))
   
   # Plot
   ggplot(plot_data_long, aes(x = Age, y = Expression, group = Cluster, color = Cluster)) +
