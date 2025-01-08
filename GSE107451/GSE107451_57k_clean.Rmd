@@ -167,7 +167,7 @@ dev.off()
 ALL_HEAD_57k3 <- JoinLayers(ALL_HEAD_57k3)
 ```
 
-Creat a Gene List of inflammaging markers and corresponding feature plots
+Create a Gene List of inflammaging markers and corresponding feature plots
 ```{r}
 #creating inflammaging marker gene list
 III_Marker_Genes <- c("SPH93",
@@ -189,15 +189,15 @@ feature plot of Inflammaging markers
 #This is an easy loop to save feature plots of all the inflammaging markers
 for (i in 1:length(III_Marker_Genes)) {
   tmp <- Seurat::FeaturePlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature")
-  ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
+  ggsave(tmp,device = "pdf",file= paste0("./results/Featureplot/Featureplot_HEAD57k_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
 
 #these two additional feature plots of noe and pros are for comparision of plot colors when there are many cells expressing certain genes
 ggsave(Seurat::FeaturePlot(ALL_HEAD_57k3, features = "noe",  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature"),
-       device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_","noe",".pdf"),width = 9,height = 6)
+       device = "pdf",file= paste0("./results/Featureplot/Featureplot_HEAD57k_","noe",".pdf"),width = 9,height = 6)
 
 ggsave(Seurat::FeaturePlot(ALL_HEAD_57k3, features = "pros",  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature"),
-       device = "pdf",file= paste0("./Featureplot/Featureplot_HEAD57k_","pros",".pdf"),width = 9,height = 6)
+       device = "pdf",file= paste0("./results/Featureplot/Featureplot_HEAD57k_","pros",".pdf"),width = 9,height = 6)
 ```
 
 violin plot of Inflammaging markers
@@ -206,21 +206,21 @@ violin plot of Inflammaging markers
 #This is an easy loop to save voilin plots of all the inflammaging markers based on Genotype
 for (i in 1:length(III_Marker_Genes)) {
   tmp2 <- Seurat::VlnPlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],group.by = "Genotype")
-  ggsave(tmp2,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Genotype_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
+  ggsave(tmp2,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Genotype_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
 
 #This vlnplot of noe is used to demonstrate what vlnplot looks like when there is enough cells expressing a gene
 ggsave(Seurat::VlnPlot(ALL_HEAD_57k3, features = "noe",group.by = "Genotype")
-       ,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Genotype_","noe",".pdf"),width = 9,height = 6)
+       ,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Genotype_","noe",".pdf"),width = 9,height = 6)
 
 #save voilin plots of all the inflammaging markers based on days
 for (i in 1:length(III_Marker_Genes)) {
   tmp3 <- Seurat::VlnPlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],group.by = "Age")
-  ggsave(tmp3,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Age_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
+  ggsave(tmp3,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Age_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
 #This vlnplot of noe is used to demonstrate what vlnplot looks like when there is enough cells expressing a gene
 ggsave(Seurat::VlnPlot(ALL_HEAD_57k3, features = "noe",group.by = "Age")
-       ,device = "pdf",file= paste0("./Vlnplot/Vlnplot_HEAD57k_Age_","noe",".pdf"),width = 9,height = 6)
+       ,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Age_","noe",".pdf"),width = 9,height = 6)
 
 ```
 
@@ -228,7 +228,7 @@ make Dimplot of tSNE
 ```{r}
 
 #tSNE of the plasmatocytes cluster
-pdf(file = "./Dimplot/Plasmatocytes_tSNE.pdf",width = 9,height = 6)
+pdf(file = "./results/Dimplot/Plasmatocytes_tSNE.pdf",width = 9,height = 6)
 DimPlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
         reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
         group.by = "annotation",
@@ -238,161 +238,13 @@ DimPlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
 dev.off()
 ```
 
-patial feature plot of III markers in plasmatocytes
-```{r}
-#partial feature plot of III markers in plasmatocytes cluster
-for (i in 1:length(III_Marker_Genes)) {
-  tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
-                             features = III_Marker_Genes[i], 
-                             cols = c("grey","darkred"),
-                             reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
-                             keep.scale = "feature",
-                             pt.size = 0.5
-                             )
-  ggsave(tmp,
-         device = "pdf",
-         file= paste0(
-           "./Featureplot/Plasmatocytes/",
-           III_Marker_Genes[i],
-           "_Plasmatocytes.pdf"),
-         width = 9,
-         height = 6
-  )
-  }
-
-```
-
-partial feature plot of III markers in plasmatocytes cluster and split by Age and/or strain sex
-```{r}
-#partial feature plot of III markers in plasmatocytes cluster and split by Age
-for (i in 1:length(III_Marker_Genes)) {
-  tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"),
-                             features = III_Marker_Genes[i],
-                             cols = c("grey","darkred"),
-                             reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
-                             keep.scale = NULL,#set to null so it is easier to see if an III marker is expressed at a certain age
-                             split.by = "Age",
-                             pt.size = 0.5
-  )+
-    patchwork::plot_layout(ncol = 3, nrow = 3)& theme(legend.position = "right")
-  
-  ggsave(tmp,
-         device = "pdf",
-         file= paste0(
-           "./Featureplot/Plasmatocytes/",
-           III_Marker_Genes[i],
-           "_Plasmatocytes_Age.pdf"),
-         width = 9,
-         height = 6,
-         limitsize = FALSE
-  )
-}
-
-#partial feature plot of III markers in plasmatocytes cluster DGRP-551 female and split by Age
-for (i in 1:length(III_Marker_Genes)) {
-  tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"&Genotype=="DGRP-551"&sex=="female"),
-                             features = III_Marker_Genes[i],
-                             cols = c("grey","darkred"),
-                             reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
-                             keep.scale = NULL,#set to null so it is easier to see if an III marker is expressed at a certain age
-                             split.by = "Age",
-                             pt.size = 0.5
-  )+
-    patchwork::plot_layout(ncol = 3, nrow = 3)& theme(legend.position = "right")
-  
-  ggsave(tmp,
-         device = "pdf",
-         file= paste0(
-           "./Featureplot/Plasmatocytes/",
-           III_Marker_Genes[i],
-           "_Plasmatocytes_Age_DGRP551_female.pdf"),
-         width = 9,
-         height = 6,
-         limitsize = FALSE
-  )
-}
-
-
-#partial feature plot of III markers in plasmatocytes cluster DGRP-551 male and split by Age
-for (i in 1:length(III_Marker_Genes)) {
-  tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"&Genotype=="DGRP-551"&sex=="male"),
-                             features = III_Marker_Genes[i],
-                             cols = c("grey","darkred"),
-                             reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
-                             keep.scale = NULL,#set to null so it is easier to see if an III marker is expressed at a certain age
-                             split.by = "Age",
-                             pt.size = 0.5
-  )+
-    patchwork::plot_layout(ncol = 3, nrow = 3)& theme(legend.position = "right")
-  
-  ggsave(tmp,
-         device = "pdf",
-         file= paste0(
-           "./Featureplot/Plasmatocytes/",
-           III_Marker_Genes[i],
-           "_Plasmatocytes_Age_DGRP551_male.pdf"),
-         width = 9,
-         height = 6,
-         limitsize = FALSE
-  )
-}
-
-
-#partial feature plot of III markers in plasmatocytes cluster w1118 female and split by Age
-for (i in 1:length(III_Marker_Genes)) {
-  tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"&Genotype=="w1118"&sex=="female"),
-                             features = III_Marker_Genes[i],
-                             cols = c("grey","darkred"),
-                             reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
-                             keep.scale = NULL,#set to null so it is easier to see if an III marker is expressed at a certain age
-                             split.by = "Age",
-                             pt.size = 0.5
-  )+
-    patchwork::plot_layout(ncol = 3, nrow = 3)& theme(legend.position = "right")
-  
-  ggsave(tmp,
-         device = "pdf",
-         file= paste0(
-           "./Featureplot/Plasmatocytes/",
-           III_Marker_Genes[i],
-           "_Plasmatocytes_Age_w1118_female.pdf"),
-         width = 9,
-         height = 6,
-         limitsize = FALSE
-  )
-}
-
-
-#partial feature plot of III markers in plasmatocytes cluster w1118 male and split by Age
-for (i in 1:length(III_Marker_Genes)) {
-  tmp <- Seurat::FeaturePlot(subset(ALL_HEAD_57k3,annotation=="Plasmatocytes"&Genotype=="w1118"&sex=="male"),
-                             features = III_Marker_Genes[i],
-                             cols = c("grey","darkred"),
-                             reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
-                             keep.scale = NULL,#set to null so it is easier to see if an III marker is expressed at a certain age
-                             split.by = "Age",
-                             pt.size = 0.5
-  )+
-    patchwork::plot_layout(ncol = 3, nrow = 3)& theme(legend.position = "right")
-  
-  ggsave(tmp,
-         device = "pdf",
-         file= paste0(
-           "./Featureplot/Plasmatocytes/",
-           III_Marker_Genes[i],
-           "_Plasmatocytes_Age_w1118_male.pdf"),
-         width = 9,
-         height = 6,
-         limitsize = FALSE
-  )
-}
-```
 
 objective 1.2 which cells in the brain express the IMs? Is it the hemocytes?
 find all markers, lowest standard
 ```{r}
 #change active idents in ALL_HEAD_57k3
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3@meta.data$annotation
+
 #find marker genes with the lowest standard (so it will definitely include III markers)
 lowest_standard_markers <-
   FindAllMarkers(ALL_HEAD_57k3,
@@ -408,7 +260,7 @@ lowest_standard_markers_dotplot <- DotPlot(ALL_HEAD_57k3, features = III_Marker_
 View(lowest_standard_markers_dotplot$data)
 
 #export dotplot of III markers
-pdf("./Dotplot/III_Markers_dotplot.pdf",
+pdf("./results/Dotplot/III_Markers_dotplot.pdf",
     width = 30,
     height = 10)
 lowest_standard_markers_dotplot
@@ -416,1284 +268,8 @@ dev.off()
 
 #export dotplot data () of III markers
 openxlsx::write.xlsx(lowest_standard_markers_dotplot$data[lowest_standard_markers_dotplot$data$features.plot%in%III_Marker_Genes,],
-                     "./data/Brain57k/lowest_standard_markers_III_markers.xlsx",
+                     "./processed_data/lowest_standard_markers_III_markers.xlsx",
                      rowNames=F)
-
-```
-
-
-make a function to see number of cells in different Strains, Sex at different Ages (for more information purpose)
-```{r}
-#This is for making the heatmap later, because for example, if there is no day 50 cell in DGRP-551 male, 
-#then the heatmap will not show expression as its pseudo-bulk expression will not be calculated
-
-
-count_cells_subset <- function(seurat_obj, strain = NULL, sex = NULL, age = NULL, cell_cluster = NULL) {
-  # Extract metadata from the Seurat object
-  meta_data <- seurat_obj@meta.data
-  
-  # Apply filters based on the provided parameters
-  if (!is.null(strain)) {
-    meta_data <- meta_data %>% filter(Genotype == strain)
-  }
-  if (!is.null(sex)) {
-    meta_data <- meta_data %>% filter(sex == sex)
-  }
-  if (!is.null(age)) {
-    meta_data <- meta_data %>% filter(Age == age)
-  }
-  if (!is.null(cell_cluster)) {
-    meta_data <- meta_data %>% filter(annotation == cell_cluster)
-  }
-  
-  # Count the number of cells for each combination of Strain, Sex, Age, and cell cluster
-  cell_counts <- meta_data %>%
-    group_by(Genotype, sex, Age, annotation) %>%
-    summarise(CellCount = n())
-  
-  return(cell_counts)
-  print(cell_counts,n=Inf)
-}
-
-# Example usage:
-# To get the number of cells for a specific strain, sex, age, and cell cluster:
-count_cells_subset(seurat_obj=ALL_HEAD_57k3,
-                                  strain = "DGRP-551",
-                                  sex = "female",
-                                  age = "50",
-                                  cell_cluster = "Plasmatocytes")
-
-
-# To get the number of cells for all combinations:
-print(
-  count_cells_subset(seurat_obj=ALL_HEAD_57k3),
-  n=Inf)
-
-cell_numbers <- print(
-  count_cells_subset(seurat_obj=ALL_HEAD_57k3),
-  n=Inf)
-
-#to see if the function generates correct number of cells
-#in plasmatocytes cluster, there are 35 cells in DGRP-551 female day 50; 
-
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&Age=="50"&annotation=="Plasmatocytes")@meta.data
-)
-#35
-
-#in plasmatocytes cluster, there are 14 cells in DGRP-551 male day 50; 
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"&Age=="50"&annotation=="Plasmatocytes")@meta.data
-)
-#14
-
-## THe function provides correct number of cells based on different requirements
-
-#export the cell number into xlsx
-openxlsx::write.xlsx(cell_numbers,"cell_numbers.xlsx",rowNames=F)
-```
-
-objective 3. Identify if the percentage of cells expressing a certain III marker is increased across ages
-percentage expressing function
-```{r}
-#calculate the persentage of cells expressing different genes within a subset of a seurat object of a certain Strain, Sex, Cluster, and Age 
-calculate_gene_expression_percentage <- function(seurat_obj, genes, strain, Sex, cluster, ages) {
-  # Create a data frame to store the results
-  results <- data.frame(
-    Gene = character(),
-    Age = character(),
-    Percentage = numeric(),
-    Cells=numeric(),
-    TotalCells=numeric()
-  )
-  
-  # Iterate over each gene
-  for (gene_i in genes) {
-    # Iterate over each age
-    for (age_i in ages) {
-      # Subset the Seurat object based on the specified metadata
-      subset_cells <- subset(seurat_obj,Genotype == strain & sex == Sex & annotation == cluster & Age == age_i)
-      
-      
-      # Calculate the number of cells expressing the gene (expression > 0)
-      
-      expressing_cells <-
-        sum(
-          as.data.frame(
-            FetchData(subset_cells, vars = gene_i,layer = "counts")
-            ) > 0
-          )
-      
-      
-      # Calculate the total number of cells in the subset
-      total_cells <- nrow(subset_cells@meta.data)
-      
-      # Calculate the percentage of cells expressing the gene
-      #expression_percentage <- expressing_cells/total_cells*100
-      expression_percentage <- if (total_cells > 0) (expressing_cells / total_cells) * 100 else NA
-      
-      # Add the result to the data frame
-      results <- rbind(
-        results, data.frame(Gene = gene_i,
-                            Age = age_i, 
-                            Percentage = expression_percentage,
-                            Cells=expressing_cells,
-                            TotalCells=total_cells
-                            )
-        )
-    }
-  }
-  
-  return(results)
-}
-
-# Example usage:
-View(
-calculate_gene_expression_percentage(
-  seurat_obj=ALL_HEAD_57k3,
-  genes=III_Marker_Genes, 
-  strain = "DGRP-551", 
-  Sex = "female", 
-  cluster = "Plasmatocytes", 
-  ages = c(3,6,9,15,30,50)
-  )
-)
-
-
-#check with simple code
-#  gene   day  percentage at day 50 in DGRP-551 female in Plasmatocytes
-#SPH93  50 0.05714286
-
-#check cells expressing SPH93 at day 50 in DGRP-551 female in Plasmatocytes
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&Age=="50"&annotation=="Plasmatocytes")@'meta.data'
-)
-#35 cells in total
-
-#check number of these cell that express SPH93
-sum(
-  FetchData(subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&Age=="50"&annotation=="Plasmatocytes"),
-            vars = 'SPH93',layer = "counts") > 0
-  )
-
-#2 cells express SPH93 at day 50 in DGRP-551 female in Plasmatocytes
-
-nrow(FetchData(subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&Age=="50"&annotation=="Plasmatocytes"), vars = 'SPH93'))
-#35 cells in total
-
-
-2/35*100
-#5.714286
-####
-
-#export PercentageExpression_III_Markers_Ages_DGRP551_female_Plasmatocytes
-openxlsx::write.xlsx(calculate_gene_expression_percentage(
-  seurat_obj=ALL_HEAD_57k3,
-  genes=III_Marker_Genes, 
-  strain = "DGRP-551", 
-  Sex = "female", 
-  cluster = "Plasmatocytes", 
-  ages = c(3,6,9,15,30,50)
-),
-"PercentageExpression_III_Markers_Ages_DGRP551_female_Plasmatocytes.xlsx",
-rowNames=F
-)
-
-#export PercentageExpression_III_Markers_Ages_DGRP551_male_Plasmatocytes
-openxlsx::write.xlsx(calculate_gene_expression_percentage(
-  seurat_obj=ALL_HEAD_57k3,
-  genes=III_Marker_Genes, 
-  strain = "DGRP-551", 
-  Sex = "male", 
-  cluster = "Plasmatocytes", 
-  ages = c(3,6,15,30,50)
-),
-"PercentageExpression_III_Markers_Ages_DGRP551_male_Plasmatocytes.xlsx",
-rowNames=F
-)
-
-#export PercentageExpression_III_Markers_Ages_w1118_female_Plasmatocytes
-openxlsx::write.xlsx(calculate_gene_expression_percentage(
-  seurat_obj=ALL_HEAD_57k3,
-  genes=III_Marker_Genes, 
-  strain = "w1118", 
-  Sex = "female", 
-  cluster = "Plasmatocytes", 
-  ages = c(3,6,9,30)
-),
-"PercentageExpression_III_Markers_Ages_w1118_female_Plasmatocytes.xlsx",
-rowNames=F
-)
-#check what is wrong with day 15
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="15"&annotation=="Plasmatocytes")@meta.data
-  )
-#there is only one cell... in w1118 female day 15 Plasmatocytes
-sum(
-  FetchData(subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="15"&annotation=="Plasmatocytes"),
-            vars = 'SPH93') > 0
-)
-
-View(subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="15"&annotation=="Plasmatocytes")@meta.data)
-#check all cells in all ages
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="3"&annotation=="Plasmatocytes")@meta.data
-)#12 cells
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="6"&annotation=="Plasmatocytes")@meta.data
-)#35 cells
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="9"&annotation=="Plasmatocytes")@meta.data
-)#20 cells
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="15"&annotation=="Plasmatocytes")@meta.data
-)#1 cells...
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&Age=="30"&annotation=="Plasmatocytes")@meta.data
-)# 10 cells
-
-
-#export PercentageExpression_III_Markers_Ages_w1118_male_Plasmatocytes
-openxlsx::write.xlsx(calculate_gene_expression_percentage(
-  seurat_obj=ALL_HEAD_57k3,
-  genes=III_Marker_Genes, 
-  strain = "w1118", 
-  Sex = "male", 
-  cluster = "Plasmatocytes", 
-  ages = c(3,6,9,30)
-),
-"PercentageExpression_III_Markers_Ages_w1118_male_Plasmatocytes.xlsx",
-rowNames=F
-)
-
-#check number of cells in all ages, because if there is only one cell, result cannot be generated (Seurat design)
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"&Age=="3"&annotation=="Plasmatocytes")@meta.data
-)#11 cells
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"&Age=="6"&annotation=="Plasmatocytes")@meta.data
-)#19 cells
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"&Age=="9"&annotation=="Plasmatocytes")@meta.data
-)#8 cells
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"&Age=="15"&annotation=="Plasmatocytes")@meta.data
-)# 1 cell ...
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"&Age=="30"&annotation=="Plasmatocytes")@meta.data
-)# 3 cells
-```
-
-
-Look at number of cells in DGRP-551 and w1118 (for more information purpose)
-```{r}
-
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551")@meta.data
-)
-#29137 cells in DGRP-551
-
-
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118")@meta.data
-)
-#27765 cells in w1118
-
-###let's check in Plasmatocytes
-
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&annotation=="Plasmatocytes")@meta.data
-)
-#200 cells in DGRP-551 in Plasmatocytes
-
-
-nrow(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&annotation=="Plasmatocytes")@meta.data
-)
-#129 cells in w1118 in Plasmatocytes
-
-nrow(
-  subset(ALL_HEAD_57k3,annotation=="Plasmatocytes")@meta.data
-)
-#329 total cells in plasmatocytes
-
-```
-
-
-objective 4. Identify if there is a change in the percentage of plasmatocytes in different strains across ages
-A function to determine the percentage of plasmatocytes of a specific Strain, sex at different ages
-```{r}
-
-calculate_cell_percentage <- function(seurat_obj, cell_types, strains, sexes) {
-  # Initialize an empty dataframe to store results
-  result_df <- data.frame()
-  
-  # Extract metadata
-  metadata <- seurat_obj@meta.data
-  
-  # Iterate over each combination of strain, sex, and cell type
-  for (strain in strains) {
-    for (sex_i in sexes) {
-      for (cell_type in cell_types) {
-        # Filter metadata for the specific strain and sex
-        filtered_metadata <- metadata %>%
-          filter(Genotype == strain, sex == sex_i)
-        
-        # Group by Age and calculate the percentage of the specified cell type
-        percentage_df <- filtered_metadata %>%
-          group_by(Age) %>%
-          summarise(
-            TotalCells = n(),
-            CellTypeCells = sum(annotation == cell_type),
-            Percentage = (CellTypeCells / TotalCells) * 100
-          ) %>%
-          mutate(Genotype = strain, sex = sex_i, annotation = cell_type)
-        
-        # Append the results to the result_df
-        result_df <- bind_rows(result_df, percentage_df)
-      }
-    }
-  }
-  
-  return(result_df)
-}
-
-# Example usage
-calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                          cell_types = c("Plasmatocytes"),
-                          strains =c("DGRP-551", "w1118"),
-                          sexes = c("female", "male")
-                          )
-#export the result into xlsx
-
-openxlsx::write.xlsx(
-  calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                            cell_types = c("Plasmatocytes"),
-                            strains =c("DGRP-551", "w1118"),
-                            sexes = c("female", "male")
-  ),
-  "Plasmatocytes_percentage_across_ages.xlsx",
-  rowNames=F
-)
-```
-
-
-Barplot of percentage of Plasmatocytes across different ages
-```{r}
-
-plot_percentage <- function(df, Strain, Cell_type, Sex) {
-  # Filter the dataframe based on the input parameters
-  df_filtered <- df[df$Genotype == Strain & df$annotation == Cell_type & df$sex == Sex, ]
-  
-  # Load necessary library
-  library(ggplot2)
-  
-  # Create the barplot
-  ggplot(df_filtered, aes(x = as.factor(Age), y = Percentage, fill = as.factor(Age))) +
-    geom_bar(stat = "identity") +
-    labs(title = paste("Percentage of", Cell_type, "for", Strain, "(", Sex, ")", "across Ages"),
-         x = "Age",
-         y = "Percentage") +
-    theme_minimal() +
-    theme(legend.position = "none")
-}
-
-# Example of how to use the function
-
-#DGRP-551_female_Plasmatocytes
-pdf(file = "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Barplot/DGRP-551_female_Plasmatocytes.pdf",width = 6,height = 4)
-plot_percentage(calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                                          cell_types = c("Plasmatocytes"),
-                                          strains =c("DGRP-551", "w1118"),
-                                          sexes = c("female", "male")
-                                          ),
-                Strain = "DGRP-551",
-                Cell_type = "Plasmatocytes", 
-                Sex = "female"
-                )
-dev.off()
-
-#DGRP-551_male_Plasmatocytes
-pdf(file = "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Barplot/DGRP-551_male_Plasmatocytes.pdf",width = 6,height = 4)
-plot_percentage(calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                                          cell_types = c("Plasmatocytes"),
-                                          strains =c("DGRP-551", "w1118"),
-                                          sexes = c("female", "male")
-),
-Strain = "DGRP-551",
-Cell_type = "Plasmatocytes", 
-Sex = "male"
-)
-dev.off()
-
-#w1118_female_Plasmatocytes
-pdf(file = "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Barplot/w1118_female_Plasmatocytes.pdf",width = 6,height = 4)
-plot_percentage(calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                                          cell_types = c("Plasmatocytes"),
-                                          strains =c("DGRP-551", "w1118"),
-                                          sexes = c("female", "male")
-),
-Strain = "w1118",
-Cell_type = "Plasmatocytes", 
-Sex = "female"
-)
-dev.off()
-
-#w1118_male_Plasmatocytes
-pdf(file = "/orange/zhou/projects/II_Cancer/GSE107451_HEAD_57K_filtered/Barplot/w1118_male_Plasmatocytes.pdf",width = 6,height = 4)
-plot_percentage(calculate_cell_percentage(seurat_obj = ALL_HEAD_57k3,
-                                          cell_types = c("Plasmatocytes"),
-                                          strains =c("DGRP-551", "w1118"),
-                                          sexes = c("female", "male")
-),
-Strain = "w1118",
-Cell_type = "Plasmatocytes", 
-Sex = "male"
-)
-dev.off()
-
-```
-
-
-Make Psuedo bulk count to compare with our BulkRNAseq***
-(This section does not have any statistical significance)
-```{r}
-#***Comment: In Seurat v5, we encourage the use of the AggregateExpression function to perform pseudobulk analysis.
-#https://satijalab.org/seurat/articles/announcements.html
-
-
-#extract Psudo count based on Genotype, sex, and Age then make subset of it tom compare with our BulkRNAseq
-EXPR_Genotype_sex_Age <- 
-  as.data.frame(AggregateExpression(object = ALL_HEAD_57k3, group.by = c("Genotype","sex","Age"))$RNA)
-
-#DGRP-551_female
-count_DGRP551_female <- 
-  EXPR_Genotype_sex_Age[,
-                        intersect(
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,1]=="DGRP-551"),
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,2]=="female")
-                          )
-                        ]
-#DGRP-551_male
-count_DGRP551_male <- 
-  EXPR_Genotype_sex_Age[,
-                        intersect(
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,1]=="DGRP-551"),
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,2]=="male")
-                        )
-                        ]
-#w1118_female
-count_w1118_female <- 
-  EXPR_Genotype_sex_Age[,
-                        intersect(
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,1]=="w1118"),
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,2]=="female")
-                        )
-                        ]
-#w1118_male
-count_w1118_male <- 
-  EXPR_Genotype_sex_Age[,
-                        intersect(
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,1]=="w1118"),
-                          which(str_split(colnames(EXPR_Genotype_sex_Age),pattern = "_",3,simplify =T)[,2]=="male")
-                        )
-                        ]
-
-#export these psudo count for further differential expression analysis to compare with our Bulk_RNA data
-write.xlsx(count_DGRP551_female,"count_DGRP551_female_HEAD57k.xlsx",rowNames=T)
-write.xlsx(count_DGRP551_male,"count_DGRP551_male_HEAD57k.xlsx",rowNames=T)
-write.xlsx(count_w1118_female,"count_w1118_female_HEAD57k.xlsx",rowNames=T)
-write.xlsx(count_w1118_male,"count_w1118_male_HEAD57k.xlsx",rowNames=T)
-```
-
-heatmap of pseudo bulk expression to compare with our BulkRNAseq
-(This section does not have any statistical significance)
-```{r}
-
-make_heatmap <- function(EXPR_OBJ,GENELIST,TITLE) {
-  tmp_hm <- EXPR_OBJ[rownames(EXPR_OBJ)%in%GENELIST,];
-  tmp_hm <- as.matrix(tmp_hm);
-  heatmap.2(x=tmp_hm,
-            Colv=F,
-            Rowv = F,
-            dendrogram="none",
-            scale="row",
-            col="bluered",
-            main=TITLE,
-            margins = c(15,15),
-            cexRow = 1.0,
-            cexCol = 1.0,
-            trace = "none"
-            )
-  }
-
-#count_DGRP551_female
-pdf(file = "./Heatmap/DGRP551_female_heatmap.pdf",
-       width = 15,
-       height = 10)
-make_heatmap(EXPR_OBJ = count_DGRP551_female[,-c(1:2)],GENELIST = III_Marker_Genes,TITLE = "DGRP551_female")
-dev.off()
-
-#count_DGRP551_male
-pdf(file = "./Heatmap/DGRP551_male_heatmap.pdf",
-    width = 15,
-    height = 10)
-make_heatmap(EXPR_OBJ = count_DGRP551_male[,-c(1:2)],GENELIST = III_Marker_Genes,TITLE = "DGRP551_male")
-dev.off()
-
-#count_w1118_female
-pdf(file = "./Heatmap/w1118_female_heatmap.pdf",
-    width = 15,
-    height = 10)
-make_heatmap(EXPR_OBJ = count_w1118_female[,-c(1:2)],GENELIST = III_Marker_Genes,TITLE = "w1118_female")
-dev.off()
-
-#count_w1118_male
-pdf(file = "./Heatmap/w1118_male_heatmap.pdf",
-    width = 15,
-    height = 10)
-make_heatmap(EXPR_OBJ = count_w1118_male[,-c(1:2)],GENELIST = III_Marker_Genes,TITLE = "w1118_male")
-dev.off()
-```
-
-#This part is for Objective 1.1 does the scRNA-Seq data agree with bulk RNA-Seq data? 
-Differential expression with presto package (comparison of all ages, similar to the idea of findallmarkers)
-```{r}
-#https://satijalab.org/seurat/articles/announcements.html (recommended by Seurat team)
-#https://github.com/immunogenomics/presto
-
-#for example: wilcoxauc(ALL_HEAD_57k3,"annotation") gives differentially expressed genes in each clusters
-
-#Find the DEGs at different age
-##DGRP-551_female
-DE_DGRP551_female_Ages <- wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
-  group_by ="Age")
-
-##DGRP-551_male
-DE_DGRP551_male_Ages <- wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"),
-  group_by ="Age")
-
-##w1118_female
-DE_w1118_female_Ages <- wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"),
-  group_by ="Age")
-
-##w1118_male
-DE_w1118_male_Ages <- wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"),
-  group_by ="Age")
-```
-
-Objective 1.1 does the scRNA-Seq data agree with bulk RNA0Seq data?
-Differential expression with presto package, 1vs1 comparison; generates statistically significant DE results
-```{r}
-#find the DEGs by comparing one age to another age
-
-#DGRP551_female day50 vs day3 and day30 vs day3
-DE_DGRP551_female_50vs3 <- 
-  wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
-  group_by = "Age",
-  groups_use = c("50","3"))
-DE_DGRP551_female_30vs3 <- 
-  wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"),
-  group_by = "Age",
-  groups_use = c("30","3"))
-
-#DGRP551_male day50 vs day3 and day30 vs day3
-DE_DGRP551_male_50vs3 <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"),
-    group_by = "Age",
-    groups_use = c("50","3"))
-DE_DGRP551_male_30vs3 <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"),
-    group_by = "Age",
-    groups_use = c("30","3"))
-
-#w1118_female day30 vs day3
-DE_w1118_female_30vs3 <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"),
-    group_by = "Age",
-    groups_use = c("30","3"))
-
-#w1118_male day30 vs day3
-DE_w1118_male_30vs3 <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"),
-    group_by = "Age",
-    groups_use = c("30","3"))
-
-################
-#save the DE results above 
-openxlsx::write.xlsx(DE_DGRP551_female_50vs3,
-                     "./data/Brain57k/DE_DGRP551_female_50vs3.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_female_30vs3,
-                     "./data/Brain57k/DE_DGRP551_female_30vs3.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_50vs3,
-                     "./data/Brain57k/DE_DGRP551_male_50vs3.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_30vs3,
-                     "./data/Brain57k/DE_DGRP551_male_30vs3.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_female_30vs3,
-                     "./data/Brain57k/DE_w1118_female_30vs3.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_male_30vs3,
-                     "./data/Brain57k/DE_w1118_male_30vs3.xlsx",
-                     rowNames=F)
-
-#save the result above only for III Markers
-openxlsx::write.xlsx(DE_DGRP551_female_50vs3[DE_DGRP551_female_50vs3$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_female_50vs3_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_female_30vs3[DE_DGRP551_female_30vs3$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_female_30vs3_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_50vs3[DE_DGRP551_male_50vs3$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_male_50vs3_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_30vs3[DE_DGRP551_male_30vs3$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_male_30vs3_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_female_30vs3[DE_w1118_female_30vs3$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_w1118_female_30vs3_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_male_30vs3[DE_w1118_male_30vs3$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_w1118_male_30vs3_III_Markers.xlsx",
-                     rowNames=F)
-
-```
-
-#Objective 1.3, do IMs increase or decrease in plasmatocytes?
-Differential expression with presto package, 1vs1 comparison; generates statistically significant DE results
-```{r}
-
-#find the DEGs by comparing one age to another age in Plasmatocytes
-
-#DGRP551_female day50 vs day3 and day30 vs day3
-DE_DGRP551_female_50vs3_Plasmatocytes <- 
-  wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&annotation=="Plasmatocytes"),
-  group_by = "Age",
-  groups_use = c("50","3"))
-DE_DGRP551_female_30vs3_Plasmatocytes <- 
-  wilcoxauc(
-  subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="female"&annotation=="Plasmatocytes"),
-  group_by = "Age",
-  groups_use = c("30","3"))
-
-#DGRP551_male day50 vs day3 and day30 vs day3
-DE_DGRP551_male_50vs3_Plasmatocytes <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"&annotation=="Plasmatocytes"),
-    group_by = "Age",
-    groups_use = c("50","3"))
-DE_DGRP551_male_30vs3_Plasmatocytes <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="DGRP-551"&sex=="male"&annotation=="Plasmatocytes"),
-    group_by = "Age",
-    groups_use = c("30","3"))
-
-#w1118_female day30 vs day3
-DE_w1118_female_30vs3_Plasmatocytes <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="female"&annotation=="Plasmatocytes"),
-    group_by = "Age",
-    groups_use = c("30","3"))
-
-#w1118_male day30 vs day3
-DE_w1118_male_30vs3_Plasmatocytes <- 
-  wilcoxauc(
-    subset(ALL_HEAD_57k3,Genotype=="w1118"&sex=="male"&annotation=="Plasmatocytes"),
-    group_by = "Age",
-    groups_use = c("30","3"))
-
-
-
-################
-#save the DE results above 
-openxlsx::write.xlsx(DE_DGRP551_female_50vs3_Plasmatocytes,
-                     "./data/Brain57k/DE_DGRP551_female_50vs3_Plasmatocytes.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_female_30vs3_Plasmatocytes,
-                     "./data/Brain57k/DE_DGRP551_female_30vs3_Plasmatocytes.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_50vs3_Plasmatocytes,
-                     "./data/Brain57k/DE_DGRP551_male_50vs3_Plasmatocytes.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_30vs3_Plasmatocytes,
-                     "./data/Brain57k/DE_DGRP551_male_30vs3_Plasmatocytes.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_female_30vs3_Plasmatocytes,
-                     "./data/Brain57k/DE_w1118_female_30vs3_Plasmatocytes.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_male_30vs3_Plasmatocytes,
-                     "./data/Brain57k/DE_w1118_male_30vs3_Plasmatocytes.xlsx",
-                     rowNames=F)
-
-#save the result above only for III Markers
-openxlsx::write.xlsx(DE_DGRP551_female_50vs3_Plasmatocytes[DE_DGRP551_female_50vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_female_50vs3_Plasmatocytes_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_female_30vs3_Plasmatocytes[DE_DGRP551_female_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_female_30vs3_Plasmatocytes_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_50vs3_Plasmatocytes[DE_DGRP551_male_50vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_male_50vs3_Plasmatocytes_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_DGRP551_male_30vs3_Plasmatocytes[DE_DGRP551_male_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_DGRP551_male_30vs3_Plasmatocytes_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_female_30vs3_Plasmatocytes[DE_w1118_female_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_w1118_female_30vs3_Plasmatocytes_III_Markers.xlsx",
-                     rowNames=F)
-openxlsx::write.xlsx(DE_w1118_male_30vs3_Plasmatocytes[DE_w1118_male_30vs3_Plasmatocytes$feature%in%III_Marker_Genes,],
-                     "./data/Brain57k/DE_w1118_male_30vs3_Plasmatocytes_III_Markers.xlsx",
-                     rowNames=F)
-
-```
-
-visualization of presto Differential expression result based on EnhancedVolcano package
-```{r}
-
-####The first part is volcano plot of all comparisons(i.e. not one Age vs another Age; it's a holistic comparison)
-#DE_DGRP551_female
-ggsave(EnhancedVolcano(DE_DGRP551_female,
-                lab = paste0(DE_DGRP551_female$feature,"_day",DE_DGRP551_female$group),
-                x = 'logFC',
-                y = 'padj',
-                title = "DE_DGRP551_female",
-                pCutoff = 0.01,
-                FCcutoff = 0.6,
-                pointSize = 3.0,
-                labSize = 3.0,
-                max.overlaps = 100,
-                colAlpha = 1,
-                legendPosition = 'right',
-                legendLabSize = 12,
-                legendIconSize = 4.0,
-                drawConnectors = T,
-                widthConnectors = 0.3,
-                lengthConnectors = unit(0.01, "npc"),
-                directionConnectors = "both",
-                arrowheads = F,
-                maxoverlapsConnectors =50,
-                typeConnectors = "open",
-                endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DE_DGRP551_female.pdf",
-       width = 15,
-       height = 10)
-#DE_DGRP551_male
-ggsave(EnhancedVolcano(DE_DGRP551_male,
-                       lab = paste0(DE_DGRP551_male$feature,"_day",DE_DGRP551_male$group),
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "DE_DGRP551_male",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.6,
-                       pointSize = 3.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DE_DGRP551_male.pdf",
-       width = 15,
-       height = 10)
-#DE_w1118_female
-ggsave(EnhancedVolcano(DE_w1118_female,
-                       lab = paste0(DE_w1118_female$feature,"_day",DE_w1118_female$group),
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "DE_w1118_female",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.6,
-                       pointSize = 3.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DE_w1118_female.pdf",
-       width = 15,
-       height = 10)
-#DE_w1118_male
-ggsave(EnhancedVolcano(DE_w1118_male,
-                       lab = paste0(DE_w1118_male$feature,"_day",DE_w1118_male$group),
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "DE_w1118_male",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.6,
-                       pointSize = 3.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DE_w1118_male.pdf",
-       width = 15,
-       height = 10)
-####
-
-
-
-
-#####The second part is the volcano plot of the second type of comparison (i.e. one Age vs another Age)
-
-#DGRP551_female_50vs3
-ggsave(EnhancedVolcano(subset(DGRP551_female_50vs3,group=="50"),
-                       lab = subset(DGRP551_female_50vs3,group=="50")$feature,
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "DGRP551_female_50vs3",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.5,
-                       pointSize = 4.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DGRP551_female_50vs3.pdf",
-       width = 15,
-       height = 10)
-
-#DGRP551_female_30vs3
-ggsave(EnhancedVolcano(subset(DGRP551_female_30vs3,group=="30"),
-                       lab = subset(DGRP551_female_30vs3,group=="30")$feature,
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "DGRP551_female_30vs3",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.5,
-                       pointSize = 4.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DGRP551_female_30vs3.pdf",
-       width = 15,
-       height = 10)
-
-#DGRP551_male_50vs3
-ggsave(EnhancedVolcano(subset(DGRP551_male_50vs3,group=="50"),
-                       lab = subset(DGRP551_male_50vs3,group=="50")$feature,
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "DGRP551_male_50vs3",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.5,
-                       pointSize = 4.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DGRP551_male_50vs3.pdf",
-       width = 15,
-       height = 10)
-
-#DGRP551_male_30vs3
-ggsave(EnhancedVolcano(subset(DGRP551_male_30vs3,group=="30"),
-                       lab = subset(DGRP551_male_30vs3,group=="30")$feature,
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "DGRP551_male_30vs3",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.5,
-                       pointSize = 4.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/DGRP551_male_30vs3.pdf",
-       width = 15,
-       height = 10)
-
-#w1118_female_30vs3
-ggsave(EnhancedVolcano(subset(w1118_female_30vs3,group=="30"),
-                       lab = subset(w1118_female_30vs3,group=="30")$feature,
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "w1118_female_30vs3",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.25,
-                       pointSize = 4.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/w1118_female_30vs3.pdf",
-       width = 15,
-       height = 10)
-
-#w1118_male_30vs3
-ggsave(EnhancedVolcano(subset(w1118_male_30vs3,group=="30"),
-                       lab = subset(w1118_male_30vs3,group=="30")$feature,
-                       x = 'logFC',
-                       y = 'padj',
-                       title = "w1118_male_30vs3",
-                       pCutoff = 0.01,
-                       FCcutoff = 0.25,
-                       pointSize = 4.0,
-                       labSize = 3.0,
-                       max.overlaps = 100,
-                       colAlpha = 1,
-                       legendPosition = 'right',
-                       legendLabSize = 12,
-                       legendIconSize = 4.0,
-                       drawConnectors = T,
-                       widthConnectors = 0.3,
-                       lengthConnectors = unit(0.01, "npc"),
-                       directionConnectors = "both",
-                       arrowheads = F,
-                       maxoverlapsConnectors =50,
-                       typeConnectors = "open",
-                       endsConnectors = "first"),
-       device = "pdf",
-       filename = "./results/DE_VolcanoPlot/w1118_male_30vs3.pdf",
-       width = 15,
-       height = 10)
-
-```
-
-
-Objective 1.2 (Another method)
-Find which cell type III Markers increased significantly in based on presto package
-```{r}
-#based on presto package that provides statistical significance on a holistic level of comparison for all cell clusters
-
-DE_Cell_Cluster <- wilcoxauc(ALL_HEAD_57k3,group_by = "annotation")
-
-#look at the result for III markers
-DE_Cell_Cluster_III_Marker_Genes <- subset(DE_Cell_Cluster,DE_Cell_Cluster$feature%in%III_Marker_Genes)
-
-View(DE_Cell_Cluster_III_Marker_Genes)
-#export the statistical result fo III markers for further analysis
-openxlsx::write.xlsx(DE_Cell_Cluster_III_Marker_Genes,
-                     "./data/DE_cell_cluster_result_III_Markers.xlsx",
-                     rowNames=F)
-```
-
-
-generate the pseudo-bulk expression of heat map of III markers in cell types
-(This section does not have statistical significance)
-```{r}
-#obtain the pseudo-bulk expression of all genes in different cell clusters
-count_celltype <- as.data.frame(
-  AggregateExpression(ALL_HEAD_57k3,group.by = "annotation")$"RNA"
-  )
-#check how many cell types there are
-ncol(count_celltype)
-#[1] 116
-
-#make a heat map of the pseudo-bulk expression of III markers in different cell types.
-pdf(file = "./results/Heatmap/III_Markers_Expression_cell_types.pdf",
-    width = 30,
-    height = 15)
-make_heatmap(EXPR_OBJ = count_celltype, GENELIST = III_Marker_Genes, TITLE = "III Markers Expression in different cell types")
-dev.off()
-
-#make a heat map that include noe and pros for to debug
-pdf(file = "./results/Heatmap/III_Markers_Expression_cell_types_test.pdf",
-    width = 50,
-    height = 50)
-make_heatmap(EXPR_OBJ = count_celltype, GENELIST = c("pros","noe"), TITLE = "III Markers Expression in different cell types")
-dev.off()
-
-#See the data for making the above heat map and determine what is wrong that casued no blue in heatmap
-View(count_celltype[rownames(count_celltype)%in%append(III_Marker_Genes,c("noe","pros")),])
-#too many zero values
-
-```
-
-Obtain Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
-(This section does not have statistical significance)
-```{r}
-#extract the Pseudo-bulk expression based on Strain, Sex, Cell cluster, and Age
-count_Strain_Sex_Cellcluster_Age <- as.data.frame(
-  AggregateExpression(ALL_HEAD_57k3,
-                      group.by = c("Genotype",
-                                   "sex",
-                                   "annotation",
-                                   "Age")
-                      )$"RNA"
-  )
-
-#check if str_split is successful by looking at how many Ages there are.
-table(str_split(colnames(count_Strain_Sex_Cellcluster_Age),pattern = "_",4,simplify =T)[,4])
-#remove day 0 and day 1 from the count_Strain_Sex_Cellcluster_Age
-count_Strain_Sex_Cellcluster_Age <- 
-  count_Strain_Sex_Cellcluster_Age[,str_split(colnames(count_Strain_Sex_Cellcluster_Age),pattern = "_",4,simplify =T)[,4]!="0"&
-                                   str_split(colnames(count_Strain_Sex_Cellcluster_Age),pattern = "_",4,simplify =T)[,4]!="1"]
-#check if there are still day 0 and day 1.
-table(str_split(colnames(count_Strain_Sex_Cellcluster_Age),pattern = "_",4,simplify =T)[,4])
-#There is no day 0 and day 1 now
-```
-
-make a function to plot heat map of genes at different Age in a specific cell cluster
-```{r}
-heatmap_specific_cluster <- function(EXPR_COUNT,GENELIST,STRAIN,SEX,CLUSTER_NAME,AGES,TITLE) {
-  tmp_count <- EXPR_COUNT[,str_split(colnames(EXPR_COUNT),pattern = "_",4,simplify =T)[,1]==STRAIN];
-  tmp_count <- tmp_count[,str_split(colnames(tmp_count),pattern = "_",4,simplify =T)[,2]==SEX];
-  tmp_count <- tmp_count[,str_split(colnames(tmp_count),pattern = "_",4,simplify =T)[,3]==CLUSTER_NAME];
-  tmp_count <- tmp_count[,str_split(colnames(tmp_count),pattern = "_",4,simplify =T)[,4]%in%AGES];
-  tmp_count2 <-tmp_count[rownames(tmp_count)%in%GENELIST,];
-  
-  #remove rows where genes have all zero values across columns
-  tmp_count2 <- tmp_count2[rowSums(tmp_count2)!=0,];
-  #change column names to days
-  colnames(tmp_count2) <- paste0("Day ", AGES);
-  tmp_count2 <- as.matrix(tmp_count2);
-  
-  heatmap.2(x=tmp_count2,
-            Colv=F,
-            Rowv = F,
-            dendrogram="none",
-            scale="row",
-            col="bluered",
-            main=TITLE,
-            margins = c(20,20),
-            cexRow = 1.0,
-            cexCol = 1.0,
-            trace = "none"
-  )
-}
-
-#EXAMPLE of this function by ploting expression of III markers in plasmotocytes where most III markers increased 
-#on a holistic level of all clusters
-
-
-###
-#Plasmatocytes_DGRP-551_female
-pdf("./Heatmap/Plasmatocytes_DGRP-551_female.pdf",width = 15,height = 10)
-heatmap_specific_cluster(EXPR_COUNT=count_Strain_Sex_Cellcluster_Age,
-                         GENELIST=III_Marker_Genes,
-                         STRAIN = "DGRP-551",
-                         SEX = "female",
-                         CLUSTER_NAME="Plasmatocytes",
-                         AGES = c("3","6","9","15","30","50"),
-                         TITLE = "III_Markers in Plasmatocytes DGRP-551 female")
-dev.off()
-
-#Plasmatocytes_DGRP-551_male
-pdf("./Heatmap/Plasmatocytes_DGRP-551_male.pdf",width = 15,height = 10)
-heatmap_specific_cluster(EXPR_COUNT=count_Strain_Sex_Cellcluster_Age,
-                         GENELIST=III_Marker_Genes,
-                         STRAIN = "DGRP-551",
-                         SEX = "male",
-                         CLUSTER_NAME="Plasmatocytes",
-                         AGES = c("3","6","15","30","50"),
-                         TITLE = "III_Markers in Plasmatocytes DGRP-551 male")
-dev.off()
-
-#Plasmatocytes_w1118_female
-pdf("./Heatmap/Plasmatocytes_w1118_female.pdf",width = 15,height = 10)
-heatmap_specific_cluster(EXPR_COUNT=count_Strain_Sex_Cellcluster_Age,
-                         GENELIST=III_Marker_Genes,
-                         STRAIN = "w1118",
-                         SEX = "female",
-                         CLUSTER_NAME="Plasmatocytes",
-                         AGES = c("3","6","9","15","30"),
-                         TITLE = "III_Markers in Plasmatocytes w1118 female")
-dev.off()
-
-#Plasmatocytes_w1118_male
-pdf("./Heatmap/Plasmatocytes_w1118_male.pdf",width = 15,height = 10)
-heatmap_specific_cluster(EXPR_COUNT=count_Strain_Sex_Cellcluster_Age,
-                         GENELIST=III_Marker_Genes,
-                         STRAIN = "w1118",
-                         SEX = "male",
-                         CLUSTER_NAME="Plasmatocytes",
-                         AGES = c("3","6","9","15","30"),
-                         TITLE = "III_Markers in Plasmatocytes w1118 male")
-dev.off()
-###
-
-
-
-####make similar heat map in other cluster (if needed), TBA
-
-####
-```
-
-Objective 1.3 Which increased or decreased (to be compared with GSE130158)
-Generate pseudobulk dataframe (rownames genes, colnames cells)
-```{r}
-
-Pseudo_HEAD_Cells <- as.data.frame(
-  AggregateExpression(ALL_HEAD_57k3,
-                      assays = "RNA",
-                      group.by = c("Genotype","sex","Age","Replicate")
-                      )$RNA
-  )
-
-dim(Pseudo_HEAD_Cells)
-#17473    52
-
-#Export the the converted Pseudobulk expression to local dir for DE
-openxlsx::write.xlsx(Pseudo_HEAD_Cells,
-                     "./processed_data/Pseudo_HEAD_Cells_57k.xlsx",
-                     rowNames=T
-                     )
-```
-
-library the DE_DEseq function (see star_DEseq protocol on onedrive)
-```{r}
-Do_DEseq <- 
-  function(Counts_matrix,
-           n_TR,                # 
-           n_CR,                #
-           p_thresh,            #
-           log2FC_thresh,       #
-           File_Title){        #
-  # make meta for DEseq (make a variable that tells DEseq which columns are controls and which are treatment ones)
-  
-meta <- colnames(Counts_matrix)
-
-meta <- as.data.frame(meta)
-
-rownames(meta) <- meta[,1]
-
-  meta$"Condition" <- c(rep("TR",n_TR),rep("CR",n_CR))
-  
-  
-  meta$Condition <- factor(meta$Condition,levels = c("CR","TR"))
-  
-  # make the dds object for DEseq
-  
-  dds <- DESeqDataSetFromMatrix(countData = Counts_matrix,
-                              colData = meta,
-                              design= ~ Condition)
-  dds <- DESeq(dds)
-  res <- results(dds, pAdjustMethod = "BH")
-  
-  #extracting result
-  res1 <- data.frame(res, stringsAsFactors = FALSE, check.names = FALSE)
-
-  res1 <- na.omit(res1)
-res1 <- res1[order(res1$padj, res1$log2FoldChange, decreasing = c(FALSE, TRUE)), ]
-
-
-res1[which(res1$log2FoldChange >= log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'up'
-res1[which(res1$log2FoldChange <= -log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'down'
-res1[which(abs(res1$log2FoldChange) <= log2FC_thresh | res1$pvalue >= p_thresh),'sig'] <- 'none'
-
-
-print(
-  paste0(File_Title," up ","total DEGs: ",nrow(res1[res1$'sig'=='up',]))
-      )
-print(res1[res1$'sig'=='up',]
-      )
-
-print(
-  paste0(File_Title," down ","total DEGs: ",nrow(res1[res1$'sig'=='down',]))
-      )
-print(res1[res1$'sig'=='down',]
-      )
-
-
-write.xlsx(res1, paste0("./processed_data/DESeq_result/",File_Title,".xlsx"),rowNames=T)
-
-write.xlsx(res1[res1$'sig'=='up',],paste0("./processed_data/DESeq_result/",File_Title,"_UP",p_thresh,".xlsx"),rowNames=T)
-
-write.xlsx(res1[res1$'sig'=='down',],paste0("./processed_data/DESeq_result/",File_Title,"_DOWN",p_thresh,".xlsx"),rowNames=T)
-
-
-}
 
 ```
 
@@ -1703,15 +279,6 @@ This function is dependent on DO_DEseq function in DEseq2_Differential_Expressio
 This function is solely written for objectice 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data.
 For instance, comparisons like day 50 vs day 3 for DGRP-551 female.
 ```{r}
-#Colnames are CellID, Strain, sex, and Age connected with "__"
-# 
-# which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,1]=="DGRP-551")
-#                           which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,2]=="female")
-#                                              which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,3]=="50")
-# 
-# which(str_split(colnames(Pseudo_HEAD_Cells),pattern = "_",4,simplify =T)[,4]=="2")
-                                            
-
 
 Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE){
   #First remove genes containing just zero;
@@ -1803,58 +370,6 @@ DESeq_DGRP551_male_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGR
                                                   rowNames = T)
 ```
 
-This section is TBD: An alternative way of plotting log2FoldChange apart from AGE Index
-```{r}
-# Load packages
-library(dplyr)
-library(ggplot2)
-
-# Merge the two DESeq results by gene symbol (rownames)
-res_female <- DESeq_DGRP551_female_50_vs_3 %>% as.data.frame() %>% rownames_to_column(var = "gene_symbol")
-res_male <- DESeq_DGRP551_male_50_vs_3 %>% as.data.frame() %>% rownames_to_column(var = "gene_symbol")
-
-# Rename columns with appropriate suffixes
-res_female <- res_female[,c(1,3,6)]
-colnames(res_female)[2:3] <- paste0(colnames(res_female)[2:3],"_female")
-
-res_male <- res_male[,c(1,3,6)]
-colnames(res_male)[2:3] <- paste0(colnames(res_male)[2:3],"_male")
-
-# Merge based on gene_symbol
-merged_res <- merge(res_female, res_male, by = "gene_symbol")
-
-# Define the shape for each gene based on significance
-merged_res <- merged_res %>%
-  mutate(shape_group = case_when(
-    pvalue_female < 0.05 & pvalue_male >= 0.05 ~ "Significant in female",
-    pvalue_female >= 0.05 & pvalue_male < 0.05 ~ "Significant in male",
-    pvalue_female < 0.05 & pvalue_male < 0.05 ~ "Significant in both",
-    TRUE ~ "Not significant"
-  ))
-
-
-# Define the color based on p-values (taking the minimum p-value for color representation); STC, because there are two p values
-merged_res <- merged_res %>%
-  mutate(min_pvalue = pmin(pvalue_female, pvalue_male))
-
-
-ggplot(merged_res, aes(x = log2FoldChange_female, y = log2FoldChange_male)) +
-  geom_point(aes(shape = shape_group, color = min_pvalue), size = 1) +
-  geom_text(aes(label = gene_symbol, max.overlaps = 2000), vjust = 1.5, hjust = 1, size =2, check_overlap = TRUE) +  # Add gene symbols
-  scale_shape_manual(values = c(4, 17, 15, 16)) +  # Customize shapes
-  scale_color_gradient(low = "blue", high = "red") +  # Color gradient based on p-value
-  labs(title = "Log2FoldChange: Female vs Male",
-       x = "log2FoldChange (Female)",
-       y = "log2FoldChange (Male)",
-       shape = "Significance",
-       color = "Min p-value") +
-  theme_minimal()+
-  xlim(-1,20) +  # Set x-axis range
-  ylim(-1,20)   # Set y-axis range
-  
-
-```
-
 
 Objective 5.1 Based on result of 1.1, which immune genes in GO_ImmuneDef.txt are up-regulated DEGs in this scRNA-Seq dataset on a pseudo bulk level? 
 
@@ -1903,7 +418,6 @@ Based on findallmarkers result, determine the percentage expression of these imm
 
 female
 ```{r}
-
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
 
 #dotplot of female_target_ImmuneGenes
@@ -1946,129 +460,10 @@ openxlsx::write.xlsx(male_target_ImmuneGenes_dotplot$data[male_target_ImmuneGene
 ```
 
 
+In addition to dotplot, straight forward demonstration of aggregated expression based on strain, sex, age and cluster could also be possible.
+The visualization functions takes 'Pseudo_HEAD_Cells_clusters' variable
 
-Objective 5.3 How much do they increase or decrease in these clusters with statistical significance. 
-
-Use Aggregate Expression function to split psudo count by strain, sex, age, replicate, and cluster.
-```{r}
-# 
-# Pseudo_HEAD_Cells_clusters <- as.data.frame(
-#   AggregateExpression(ALL_HEAD_57k3,
-#                       assays = "RNA",
-#                       group.by = c("Genotype","sex","Age","Replicate","annotation")
-#                       )$RNA
-#   )
-
-# 
-# dim(Pseudo_HEAD_Cells_clusters)
-# 
-# #Export the the converted Pseudobulk expression to local dir for DE
-# openxlsx::write.xlsx(Pseudo_HEAD_Cells_clusters,
-#                      "./processed_data/Pseudo_HEAD_Cells_clusters.xslx",
-#                      rowNames=T
-#                      )
-
-
-
-
-#Error: vector memory limit of 32.0 Gb reached, see mem.maxVSize()
-#not able to split.
-#Try with HPG. script + ALL_HEAD_57k3.rds
-
-saveRDS(ALL_HEAD_57k3,"./ALL_HEAD_57k3.rds")
-
-#76 GB memory was used (all of them), and R session almost ended (75.4GB...)
-#exported result as Pseudo_HEAD_Cells_clusters.xslx on HPG
-
-#import the result done on HPG
-
-Pseudo_HEAD_Cells_clusters <- read.xlsx("./large_file/Pseudo_HEAD_Cells_clusters.xlsx",rowNames = T)
-
-colnames(Pseudo_HEAD_Cells_clusters)
-```
-
-make a function to conduct statistical analysis
-```{r}
-Run_DESeq2_Pseudo_HEAD_Cells_clusters <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE,CLUSTER){
-  #First remove genes containing just zero;
-  #PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
-  #PSEUDO_INPUT <- na.omit(PSEUDO_INPUT);
-  #PSEUDO_INPUT <- PSEUDO_INPUT+1
-  #First take the subset based on strain and sex and cluster
-  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,1]==STRAIN)];
-  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,2]==SEX)];
-  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,5]==CLUSTER)];
-  #Obtain the index for old age and young age columns
-  index_old <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,3]==OLD_AGE);
-  index_young <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",5,simplify =T)[,3]==YOUNG_AGE);
-  #Obtain the # of columns in each condition
-  N_OLD <- length(index_old);
-  N_YOUNG <- length(index_young);
-  
-  #Run DO_DEseq function to generate results to ./DESeq_result dir
-  Do_DEseq(Counts_matrix=cbind(PSEUDO_INPUT[,index_old],PSEUDO_INPUT[,index_young]), #select the columns in readcount matrix and select treatment sample first then control samples
-           n_TR=N_OLD,   #number of treatment sample             
-           n_CR=N_YOUNG,    #number of control sample            
-           p_thresh=0.05,         #p value threshold   
-           log2FC_thresh=1,       #log2 fold change threshold
-           File_Title=paste0("DESeq_",STRAIN,"_",SEX,"_",OLD_AGE,"_vs_",YOUNG_AGE,"_In_Cluster_",CLUSTER)
-           )  #xlsx file title
-
-}          
-```
-
-Run the function to obtain DESeq statistical results
-```{r}
-Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
-                                      STRAIN="DGRP-551",
-                                      SEX="female",
-                                      OLD_AGE="30",
-                                      YOUNG_AGE="3",
-                                      CLUSTER="Plasmatocytes")
-
-Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
-                                      STRAIN="DGRP-551",
-                                      SEX="female",
-                                      OLD_AGE="50",
-                                      YOUNG_AGE="3",
-                                      CLUSTER="Plasmatocytes")
-
-Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
-                                      STRAIN="DGRP-551",
-                                      SEX="male",
-                                      OLD_AGE="30",
-                                      YOUNG_AGE="3",
-                                      CLUSTER="Plasmatocytes")
-
-Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
-                                      STRAIN="DGRP-551",
-                                      SEX="male",
-                                      OLD_AGE="50",
-                                      YOUNG_AGE="3",
-                                      CLUSTER="Plasmatocytes")
-
-Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
-                                      STRAIN="w1118",
-                                      SEX="female",
-                                      OLD_AGE="30",
-                                      YOUNG_AGE="3",
-                                      CLUSTER="Plasmatocytes")
-
-Run_DESeq2_Pseudo_HEAD_Cells_clusters(PSEUDO_INPUT=Pseudo_HEAD_Cells_clusters,
-                                      STRAIN="w1118",
-                                      SEX="male",
-                                      OLD_AGE="30",
-                                      YOUNG_AGE="3",
-                                      CLUSTER="Plasmatocytes")
-```
-
-
-
-In addition to dotplot, straight forward demonstration of aggregated expression based on strain, sex, age and cluster can be shown with back-to-back barplot (TBD).
-The visualization functions takes Pseudo_HEAD_Cells_clusters variable
-
-
-The input should be a dataframe split by
+The input should be a dataframe split by genotype, sex, age, and celltype
 ```{r}
 Pseudo_HEAD_Genotype_Sex_Age_Cluster <- as.data.frame(
   AggregateExpression(ALL_HEAD_57k3,
@@ -2088,17 +483,12 @@ write.xlsx(Pseudo_HEAD_Genotype_Sex_Age_Cluster,"./large_file/Pseudo_HEAD_Genoty
 #import gtf file
 ```{r}
 library(data.table)
-genes <- fread("./large_file/dmel-all-r6.16.gtf")
+genes <- fread("./large_file/dmel-all-r6.16.gtf",header = F)
 setnames(genes, names(genes), c("chr","source","type","start","end","score","strand","phase","attributes") )
 
-# [optional] focus, for example, only on entries of type "gene", 
-# which will drastically reduce the file size
+# extract gene info in gtf
 genes <- genes[type == "gene"]
 
-# the problem is the attributes column that tends to be a collection
-# of the bits of information you're actually interested in
-# in order to pull out just the information I want based on the 
-# tag name, e.g. "gene_id", I have the following function:
 extract_attributes <- function(gtf_attributes, att_of_interest){
   att <- strsplit(gtf_attributes, "; ")
   att <- gsub("\"","",unlist(att))
@@ -2111,6 +501,8 @@ extract_attributes <- function(gtf_attributes, att_of_interest){
 # this is how to, for example, extract the values for the attributes of interest (here: "gene_id")
 genes$gene_id <- unlist(lapply(genes$attributes, extract_attributes, "gene_id"))
 genes$gene_symbol <- unlist(lapply(genes$attributes, extract_attributes, "gene_symbol"))
+
+# remove the semi-colon
 genes$gene_symbol <-substr(genes$gene_symbol,1,nchar(genes$gene_symbol)-1)
 
 genes$gene_length <- abs(genes$end-genes$start)
@@ -2120,7 +512,7 @@ openxlsx::write.xlsx(genes,
            rowNames=F)
 ```
 
-find joint genes in SOBJ and gtf file
+find joint genes in Pseudo_HEAD_Genotype_Sex_Age_Cluster and gtf file
 ```{r}
 nrow(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
 nrow(genes)
@@ -2137,6 +529,7 @@ write.xlsx(gene_SOBJ,"./processed_data/transformed_gtf/gene_SOBJ.xlsx")
 
 
 convert the dataframe above into TPM based on code snippet from Michael Love (DESeq2 developer)
+https://support.bioconductor.org/p/91218/#91256
 ```{r}
 # Function to convert counts to TPM with estimated gene lengths
 count2TPM <- 
@@ -2228,6 +621,168 @@ write.xlsx(cell_number_Genotype_Sex_Age_Cluster,
            "./large_file/cell_number_Genotype_Sex_Age_Cluster.xlsx",
            rowNames=F)
 ```
+
+F1 barplot function to show top clusters of a gene's expression at an age
+```{r}
+
+# function to create bar plots for a specific gene
+plot_log2bars_Ages <- function(DATA, GENE, STRAIN, SEX, AGE1,TOP_N_CLUSTERS) {
+  #first subset based on strain and sex
+  DATA <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,1]==STRAIN)];
+  DATA <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,2]==SEX)];
+  
+  #prepare data for two ages
+  DATA_AGE1 <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,3]==AGE1)];
+  
+  #log2 tranformation
+  DATA_AGE1 <- log2(as.matrix(DATA_AGE1[GENE,]+1))
+  #rank row-wise    
+  DATA_AGE1 <- DATA_AGE1[, order(DATA_AGE1[1, ], decreasing = TRUE)];
+  #select first 12 clusters to show
+  DATA_AGE1 <- DATA_AGE1[1:TOP_N_CLUSTERS]
+  DATA_AGE1 <- as.matrix(DATA_AGE1);
+  DATA_AGE1 <- t(DATA_AGE1);
+  
+  barplot(DATA_AGE1,
+          xlim=c(0,8), 
+          ylim=c(0,20),
+          width=0.4,
+          main=paste0("log2(TPM)"," at day ",AGE1," of ", GENE," in ",STRAIN," ",SEX), 
+          names.arg=str_split(colnames(DATA_AGE1),pattern = "_",4,simplify =T)[,4],
+          ylab="log2Expression level", 
+          xlab="Clusters",
+          col=c("darkblue"),
+          cex.names=0.4,
+          las=2)
+}
+
+```
+
+
+Run the function above (for example)
+```{r}
+#Run the function above
+
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE ="Dro",
+                   AGE1 ="50",
+                   TOP_N_CLUSTERS = 12)
+
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE ="Dro",
+                   AGE1 ="30",
+                   TOP_N_CLUSTERS = 12)
+```
+
+save F1 barplot in a batch
+```{r}
+#try saving in a batch (loop)
+
+#female_target_ImmuneGenes day 30
+for (i in 1:length(female_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day30.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE =female_target_ImmuneGenes[i],
+                   AGE1 ="30",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+#female_target_ImmuneGenes day 50
+for (i in 1:length(female_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day50.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE =female_target_ImmuneGenes[i],
+                   AGE1 ="50",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+
+#male_target_ImmuneGenes day 30
+for (i in 1:length(male_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day30.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =male_target_ImmuneGenes[i],
+                   AGE1 ="30",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+#male_target_ImmuneGenes day 50
+for (i in 1:length(male_target_ImmuneGenes)) {
+  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day50.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =male_target_ImmuneGenes[i],
+                   AGE1 ="50",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+
+#female IMs day 30
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_female_",III_Marker_Genes[i],"_day30.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="30",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+#female IMs day 50
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_female_",III_Marker_Genes[i],"_day50.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "female",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="50",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+
+#male IMs day 30
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_male_",III_Marker_Genes[i],"_day30.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="30",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+#male IMs day 50
+for (i in 1:length(III_Marker_Genes)) {
+  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_male_",III_Marker_Genes[i],"_day50.pdf"),width = 9,height = 6)
+plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
+                   STRAIN = "DGRP-551",
+                   SEX = "male",
+                   GENE =III_Marker_Genes[i],
+                   AGE1 ="50",
+                   TOP_N_CLUSTERS = 12)
+dev.off()
+}
+
+```
+
 
 
 F2 before and after plot for 2 ages
@@ -2563,167 +1118,6 @@ for (i in 1:length(III_Marker_Genes)) {
                                   TOP_N_CLUSTERS = 7
                                   );
   ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_IMs/Expression_change_DGRP-551_male_day3_day_15_day30_day50_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
-}
-
-```
-
-F1 barplot function to show top clusters of a gene's expression at an age
-```{r}
-
-# function to create bar plots for a specific gene
-plot_log2bars_Ages <- function(DATA, GENE, STRAIN, SEX, AGE1,TOP_N_CLUSTERS) {
-  #first subset based on strain and sex
-  DATA <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,1]==STRAIN)];
-  DATA <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,2]==SEX)];
-  
-  #prepare data for two ages
-  DATA_AGE1 <- DATA[,which(str_split(colnames(DATA),pattern = "_",4,simplify =T)[,3]==AGE1)];
-  
-  #log2 tranformation
-  DATA_AGE1 <- log2(as.matrix(DATA_AGE1[GENE,]+1))
-  #rank row-wise    
-  DATA_AGE1 <- DATA_AGE1[, order(DATA_AGE1[1, ], decreasing = TRUE)];
-  #select first 12 clusters to show
-  DATA_AGE1 <- DATA_AGE1[1:TOP_N_CLUSTERS]
-  DATA_AGE1 <- as.matrix(DATA_AGE1);
-  DATA_AGE1 <- t(DATA_AGE1);
-  
-  barplot(DATA_AGE1,
-          xlim=c(0,8), 
-          ylim=c(0,20),
-          width=0.4,
-          main=paste0("log2(TPM)"," at day ",AGE1," of ", GENE," in ",STRAIN," ",SEX), 
-          names.arg=str_split(colnames(DATA_AGE1),pattern = "_",4,simplify =T)[,4],
-          ylab="log2Expression level", 
-          xlab="Clusters",
-          col=c("darkblue"),
-          cex.names=0.4,
-          las=2)
-}
-
-```
-
-
-Run the function above (for example)
-```{r}
-#Run the function above
-
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "female",
-                   GENE ="Dro",
-                   AGE1 ="50",
-                   TOP_N_CLUSTERS = 12)
-
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "female",
-                   GENE ="Dro",
-                   AGE1 ="30",
-                   TOP_N_CLUSTERS = 12)
-```
-
-save F1 barplot in a batch
-```{r}
-#try saving in a batch (loop)
-
-#female_target_ImmuneGenes day 30
-for (i in 1:length(female_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day30.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "female",
-                   GENE =female_target_ImmuneGenes[i],
-                   AGE1 ="30",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
-}
-
-#female_target_ImmuneGenes day 50
-for (i in 1:length(female_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day50.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "female",
-                   GENE =female_target_ImmuneGenes[i],
-                   AGE1 ="50",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
-}
-
-
-#male_target_ImmuneGenes day 30
-for (i in 1:length(male_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day30.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "male",
-                   GENE =male_target_ImmuneGenes[i],
-                   AGE1 ="30",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
-}
-
-#male_target_ImmuneGenes day 50
-for (i in 1:length(male_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day50.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "male",
-                   GENE =male_target_ImmuneGenes[i],
-                   AGE1 ="50",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
-}
-
-
-#female IMs day 30
-for (i in 1:length(III_Marker_Genes)) {
-  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_female_",III_Marker_Genes[i],"_day30.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "female",
-                   GENE =III_Marker_Genes[i],
-                   AGE1 ="30",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
-}
-
-#female IMs day 50
-for (i in 1:length(III_Marker_Genes)) {
-  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_female_",III_Marker_Genes[i],"_day50.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "female",
-                   GENE =III_Marker_Genes[i],
-                   AGE1 ="50",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
-}
-
-
-#male IMs day 30
-for (i in 1:length(III_Marker_Genes)) {
-  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_male_",III_Marker_Genes[i],"_day30.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "male",
-                   GENE =III_Marker_Genes[i],
-                   AGE1 ="30",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
-}
-
-#male IMs day 50
-for (i in 1:length(III_Marker_Genes)) {
-  pdf(paste0("./results/Barplot/IMs/Barplot_DGRP551_male_",III_Marker_Genes[i],"_day50.pdf"),width = 9,height = 6)
-plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
-                   STRAIN = "DGRP-551",
-                   SEX = "male",
-                   GENE =III_Marker_Genes[i],
-                   AGE1 ="50",
-                   TOP_N_CLUSTERS = 12)
-dev.off()
 }
 
 ```
