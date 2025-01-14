@@ -4,17 +4,12 @@ output: NA
 ---
 # this is the R script for the analysis of the head ScRNA-Seq data of the GSE107451 
 
-# Objectives: 
+# Objectives (Partial; Full objectives can be found in the old file GSE107451_ALL_HEAD57k): 
 # 1.1 does the scRNA-Seq data agree with bulk RNA-Seq data? 
 # 1.2 which cells in the brain express the IMs? Is it the hemocytes? 
 # 1.3 which one shows age-dependent increase or decrease? (Based on 1.1, 1.2 result, in plasmatocytes)? 
-# 2.1 Calculate aggregated expression for individual cluster - function to extract expression of a gene in a particular cluster.
-# 2.2 Evaluate how each cell type contributes to the inflammaging pattern observed in whole head samples. (TBD based on result in objective 1.2)
-# 3. Identify if the percentage of cells expressing a certain III marker is increased across ages
-# 4. Identify if there is a change in the percentage of plasmatocytes in different strains across ages
 # 5.1 Based on result of 1.1, which immune genes in GO_ImmuneDef.txt are up-regulated DEGs in this scRNA-Seq dataset on a pseudo bulk level? 
 # 5.2 In which clusters are these genes expressed in? 
-# 5.3 How much do they increase or decrease in these clusters with statistical significance. 
 
 # Dataset
 ## GSE107451 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE107451 
@@ -27,15 +22,17 @@ output: NA
 ## For analysis of scRNAseq data, Seurat V5 is used. For more information, check https://satijalab.org/seurat/, and https://satijalab.org/seurat/articles/install.html for specific instruction on installation.
 
                          
-# Most important global variables:
+# Most important environment variables:
 ## ALL_HEAD_57k3: the seurat object for this analysis after every piece of information is aggregated into it. All Seurat plots are beased on this object.
-## Pseudo_HEAD_Genotype_Sex_Age_Cluster: aggregated count split by genotype, sex, age, and cell type.
-## TPM_HEAD_Genotype_Sex_Age_Cluster: aggregated count normalized to TPM
+
+## Pseudo_HEAD_Cells: aggregated count split by genotype, sex, age, and replicate. DEseq was performed on the basis of this aggregated count matrix to compare with bulk RNAseq data.
+
+## Pseudo_HEAD_Genotype_Sex_Age_Cluster: aggregated count split by genotype, sex, age, and, cell type.
+## TPM_HEAD_Genotype_Sex_Age_Cluster: aggregated count (Pseudo_HEAD_Genotype_Sex_Age_Cluster) normalized to TPM. Used for visualization with F1, F2, F3, and F4.
 
 
 set working directory and library package
 ```{r}
-
 ## run at HiPerGator (HPG) if mem not enough
 setwd(getwd())  
 getwd()
@@ -56,7 +53,7 @@ library(DESeq2)
 
 ```
 
-Load work image
+Load work image (if there is one)
 ```{r}
 #This is the work.image saved on local terminal
 load("GSE107451_head_ALL_57k.RData")
@@ -158,7 +155,7 @@ dev.off()
 
 
 objective 1.2 which cells in the brain express the IMs? Is it the hemocytes?
-find all markers, lowest standard
+find all markers, lowest standard; generated statistical results
 ```{r}
 #change active idents in ALL_HEAD_57k3
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3@meta.data$annotation
@@ -192,12 +189,102 @@ openxlsx::write.xlsx(lowest_standard_markers_dotplot$data[lowest_standard_marker
 ```
 
 
-Make a function to Run DESeq2 for Pseudo_HEAD_Cells variable.
-This function is dependent on DO_DEseq function in DEseq2_Differential_Expression_Feb22_2024.docx on OneDrive.
-This function is solely written for objectice 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data.
-For instance, comparisons like day 50 vs day 3 for DGRP-551 female.
+
+Objective 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data on a holistic level. Which increased or decreased
+Generate pseudobulk dataframe (rownames genes, colnames cells), split by genotype, sex, age, and replicate.
 ```{r}
 
+Pseudo_HEAD_Cells <- as.data.frame(
+  AggregateExpression(ALL_HEAD_57k3,
+                      assays = "RNA",
+                      group.by = c("Genotype","sex","Age","Replicate")
+                      )$RNA
+  )
+
+dim(Pseudo_HEAD_Cells)
+#17473    52
+
+#Export the the converted Pseudobulk expression to local dir for DE
+openxlsx::write.xlsx(Pseudo_HEAD_Cells,
+                     "./processed_data/Pseudo_HEAD_Cells_57k.xlsx",
+                     rowNames=T
+                     )
+```
+
+Make a function to Run DESeq2 for Pseudo_HEAD_Cells variable.
+
+This function is dependent on DO_DEseq function in DEseq2_Differential_Expression_Feb22_2024.docx on OneDrive.
+
+This function is solely written for objectice 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data on a holistic level.
+For instance, comparisons like day 50 vs day 3 for DGRP-551 female.
+
+
+```{r}
+#library the DE_DEseq function (see star_DEseq protocol on onedrive)
+Do_DEseq <- 
+  function(Counts_matrix,
+           n_TR,                # 
+           n_CR,                #
+           p_thresh,            #
+           log2FC_thresh,       #
+           File_Title){        #
+  # make meta for DEseq (make a variable that tells DEseq which columns are controls and which are treatment ones)
+  
+meta <- colnames(Counts_matrix)
+
+meta <- as.data.frame(meta)
+
+rownames(meta) <- meta[,1]
+
+  meta$"Condition" <- c(rep("TR",n_TR),rep("CR",n_CR))
+  
+  
+  meta$Condition <- factor(meta$Condition,levels = c("CR","TR"))
+  
+  # make the dds object for DEseq
+  
+  dds <- DESeqDataSetFromMatrix(countData = Counts_matrix,
+                              colData = meta,
+                              design= ~ Condition)
+  dds <- DESeq(dds)
+  res <- results(dds, pAdjustMethod = "BH")
+  
+  #extracting result
+  res1 <- data.frame(res, stringsAsFactors = FALSE, check.names = FALSE)
+
+  res1 <- na.omit(res1)
+res1 <- res1[order(res1$padj, res1$log2FoldChange, decreasing = c(FALSE, TRUE)), ]
+
+
+res1[which(res1$log2FoldChange >= log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'up'
+res1[which(res1$log2FoldChange <= -log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'down'
+res1[which(abs(res1$log2FoldChange) <= log2FC_thresh | res1$pvalue >= p_thresh),'sig'] <- 'none'
+
+
+print(
+  paste0(File_Title," up ","total DEGs: ",nrow(res1[res1$'sig'=='up',]))
+      )
+print(res1[res1$'sig'=='up',]
+      )
+
+print(
+  paste0(File_Title," down ","total DEGs: ",nrow(res1[res1$'sig'=='down',]))
+      )
+print(res1[res1$'sig'=='down',]
+      )
+
+
+write.xlsx(res1, paste0("./processed_data/DESeq_result/",File_Title,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='up',],paste0("./processed_data/DESeq_result/",File_Title,"_UP",p_thresh,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='down',],paste0("./processed_data/DESeq_result/",File_Title,"_DOWN",p_thresh,".xlsx"),rowNames=T)
+
+
+}
+
+
+#This function is dependent on DO_DEseq function
 Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE){
   #First remove genes containing just zero;
   #PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
@@ -226,6 +313,8 @@ Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_A
 ```
 
 Run_DESeq2_Pseudo_HEAD_Cells function Using Universally acknowledged thresholds: p<0.05 and log2FC>1 (or you can manually select based on P value in .xlsx that contains both up and down)
+Some results will later be used for generating ranked gene lists of DGRP-551 immune genes for female and male
+
 ```{r}
 #This comparison below took some time
 Run_DESeq2_Pseudo_HEAD_Cells(
@@ -279,8 +368,9 @@ Run_DESeq2_Pseudo_HEAD_Cells(
 ```
 
 
-plot log2FoldChange of genes in female vs male comparisons based on DESeq results, with shapes and colors indicating significance
-Import DESeq result of DGRP551
+
+
+Import DESeq result of DGRP551 female and male
 ```{r}
 DESeq_DGRP551_female_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_female_50_vs_3.xlsx",
                                                   rowNames = T)
@@ -379,9 +469,7 @@ openxlsx::write.xlsx(male_target_ImmuneGenes_dotplot$data[male_target_ImmuneGene
 
 
 In addition to dotplot, straight forward demonstration of aggregated expression based on strain, sex, age and cluster could also be possible.
-The visualization functions takes 'Pseudo_HEAD_Cells_clusters' variable
-
-The input should be a dataframe split by genotype, sex, age, and celltype
+The visualization functions (in later parts) take 'Pseudo_HEAD_Genotype_Sex_Age_Cluster' variable as one input
 ```{r}
 Pseudo_HEAD_Genotype_Sex_Age_Cluster <- as.data.frame(
   AggregateExpression(ALL_HEAD_57k3,
@@ -988,7 +1076,8 @@ for (i in 1:length(female_target_ImmuneGenes)) {
                                   second_age = 15,
                                   third_age = 30,
                                   fourth_age = 50,
-                                  TOP_N_CLUSTERS = 7
+                                  TOP_N_CLUSTERS = 7,
+                                  cell_number_df = cell_number_Genotype_Sex_Age_Cluster
                                   );
   ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_target_ImmuneGenes_plot/Expression_change_DGRP-551_female_day3_day_15_day30_day50_",female_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
 }
@@ -1003,7 +1092,8 @@ for (i in 1:length(male_target_ImmuneGenes)) {
                                   second_age = 15,
                                   third_age = 30,
                                   fourth_age = 50,
-                                  TOP_N_CLUSTERS = 7
+                                  TOP_N_CLUSTERS = 7,
+                                  cell_number_df = cell_number_Genotype_Sex_Age_Cluster
                                   );
   ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_target_ImmuneGenes_plot/Expression_change_DGRP-551_male_day3_day_15_day30_day50_",male_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
 }
@@ -1018,7 +1108,8 @@ for (i in 1:length(III_Marker_Genes)) {
                                   second_age = 15,
                                   third_age = 30,
                                   fourth_age = 50,
-                                  TOP_N_CLUSTERS = 7
+                                  TOP_N_CLUSTERS = 7,
+                                  cell_number_df = cell_number_Genotype_Sex_Age_Cluster
                                   );
   ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_IMs/Expression_change_DGRP-551_female_day3_day_15_day30_day50_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
@@ -1033,7 +1124,8 @@ for (i in 1:length(III_Marker_Genes)) {
                                   second_age = 15,
                                   third_age = 30,
                                   fourth_age = 50,
-                                  TOP_N_CLUSTERS = 7
+                                  TOP_N_CLUSTERS = 7,
+                                  cell_number_df = cell_number_Genotype_Sex_Age_Cluster
                                   );
   ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_IMs/Expression_change_DGRP-551_male_day3_day_15_day30_day50_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
 }
