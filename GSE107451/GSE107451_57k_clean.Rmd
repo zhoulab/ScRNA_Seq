@@ -32,6 +32,7 @@ output: NA
 ## Pseudo_HEAD_Genotype_Sex_Age_Cluster: aggregated count split by genotype, sex, age, and cell type.
 ## TPM_HEAD_Genotype_Sex_Age_Cluster: aggregated count normalized to TPM
 
+
 set working directory and library package
 ```{r}
 
@@ -52,8 +53,7 @@ library(EnhancedVolcano)
 library(ggrepel)
 library(gplots)
 library(DESeq2)
-#devtools::install_github("immunogenomics/presto")
-#BiocManager::install("EnhancedVolcano")
+
 ```
 
 Load work image
@@ -94,55 +94,33 @@ View(ALL_HEAD_57k@meta.data)
 Normalization and find clusters under different resolutions
 ```{r}
 ###NOTE: Running the standard workflow from normalization, pca, etc.. to tSNE is simply for adding the "reduction" slot in the Seurat OBJ
-# run standard anlaysis workflow (82 PCs is what autho's parameter)
+
 ALL_HEAD_57k2 <- NormalizeData(ALL_HEAD_57k)
 ALL_HEAD_57k2 <- FindVariableFeatures(ALL_HEAD_57k2)
 ALL_HEAD_57k2 <- ScaleData(ALL_HEAD_57k2)
 min(nrow(ALL_HEAD_57k2), ncol(ALL_HEAD_57k2))
 ALL_HEAD_57k2 <- RunPCA(ALL_HEAD_57k2,npcs = 20,verbose = F)
 ALL_HEAD_57k2 <- FindNeighbors(ALL_HEAD_57k2, dims = 1:20, reduction = "pca", verbose=TRUE)
-# 
-# #find clusters under different resolutions
-# for (i in seq(0.80,0.95,by=0.01)) {
-#   ALL_HEAD_57k2 <- FindClusters(ALL_HEAD_57k2, resolution = i, cluster.name = paste0("ALL_HEAD_57k_clusters_",i))
-# }
 
-#save the resolution adn clustering results with clustree
-# ggsave(clustree(ALL_HEAD_57k2,prefix = "ALL_HEAD_57k_clusters_"), device = "pdf",filename = "./cluster_tree.pdf",width = 30,height = 20)
-
-#change active.ident to 87 clusters for next step (using author's annotation)
 ALL_HEAD_57k2@active.ident <- as.factor(ALL_HEAD_57k2@meta.data$annotation)
 ```
 
 Run tSNE reductons
 ```{r}
+###NOTE: Running the standard workflow tSNE is simply for adding the "tSNE" slot in the Seurat OBJ
+
 #Run tSNE
-ALL_HEAD_57k3 <- RunTSNE(ALL_HEAD_57k2, dims = 1:20, reduction = "pca", reduction.name = "tSNE_ALL_HEAD_57k_Author_cluster",verbose=F,perplexity=30)
+ALL_HEAD_57k3 <- RunTSNE(ALL_HEAD_57k2, dims = 1:20, reduction = "pca", reduction.name = "tSNE_ALL_HEAD_57k_Author_cluster",verbose=T,perplexity=30)
 
  
-#change tSNE coordinates to authors' values (so the topology looks if not the same, very similar)
+#change tSNE coordinates to authors' values (so the topology looks the same)
 table(rownames(ALL_HEAD_57k3@meta.data)%in%rownames(ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings))
 # TRUE 
 # 56902 
 ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings[,1] <- ALL_HEAD_57k3@meta.data$seurat_tsne1
 ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings[,2] <- ALL_HEAD_57k3@meta.data$seurat_tsne2
 
-
-
-#tSNE plot of cell clusters based on author's annotation
-pdf(paste0("./results/Dimplot/ALL_HEAD_57k_tSNE.pdf"),width = 30,height = 20)
-DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster",group.by = "annotation",
-        label = TRUE,
-        label.size = 5,
-        repel = TRUE)
-dev.off()
-
-#tSNE plot of different ages based on author's annotation
-pdf(paste0("./results/Dimplot/ALL_HEAD_57k_tSNE_days.pdf"),width = 15,height = 10)
-DimPlot(ALL_HEAD_57k3, reduction = "tSNE_ALL_HEAD_57k_Author_cluster", group.by = "Age")
-dev.off()
-
-#In seuratV5, joinlayers is needed to prevent error
+#In seuratV5, joinlayers is needed to prevent error when running FindallMarkers
 ALL_HEAD_57k3 <- JoinLayers(ALL_HEAD_57k3)
 ```
 
@@ -163,45 +141,6 @@ III_Marker_Genes <- c("SPH93",
                       "edin")
 ```
 
-feature plot of Inflammaging markers
-```{r}
-#This is an easy loop to save feature plots of all the inflammaging markers
-for (i in 1:length(III_Marker_Genes)) {
-  tmp <- Seurat::FeaturePlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature")
-  ggsave(tmp,device = "pdf",file= paste0("./results/Featureplot/Featureplot_HEAD57k_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
-}
-
-#these two additional feature plots of noe and pros are for comparision of plot colors when there are many cells expressing certain genes
-ggsave(Seurat::FeaturePlot(ALL_HEAD_57k3, features = "noe",  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature"),
-       device = "pdf",file= paste0("./results/Featureplot/Featureplot_HEAD57k_","noe",".pdf"),width = 9,height = 6)
-
-ggsave(Seurat::FeaturePlot(ALL_HEAD_57k3, features = "pros",  cols = c("grey","darkred"), reduction = "tSNE_ALL_HEAD_57k_Author_cluster",keep.scale = "feature"),
-       device = "pdf",file= paste0("./results/Featureplot/Featureplot_HEAD57k_","pros",".pdf"),width = 9,height = 6)
-```
-
-violin plot of Inflammaging markers
-```{r}
-
-#This is an easy loop to save voilin plots of all the inflammaging markers based on Genotype
-for (i in 1:length(III_Marker_Genes)) {
-  tmp2 <- Seurat::VlnPlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],group.by = "Genotype")
-  ggsave(tmp2,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Genotype_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
-}
-
-#This vlnplot of noe is used to demonstrate what vlnplot looks like when there is enough cells expressing a gene
-ggsave(Seurat::VlnPlot(ALL_HEAD_57k3, features = "noe",group.by = "Genotype")
-       ,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Genotype_","noe",".pdf"),width = 9,height = 6)
-
-#save voilin plots of all the inflammaging markers based on days
-for (i in 1:length(III_Marker_Genes)) {
-  tmp3 <- Seurat::VlnPlot(ALL_HEAD_57k3, features = III_Marker_Genes[i],group.by = "Age")
-  ggsave(tmp3,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Age_",III_Marker_Genes[i],".pdf"),width = 9,height = 6)
-}
-#This vlnplot of noe is used to demonstrate what vlnplot looks like when there is enough cells expressing a gene
-ggsave(Seurat::VlnPlot(ALL_HEAD_57k3, features = "noe",group.by = "Age")
-       ,device = "pdf",file= paste0("./results/Vlnplot/Vlnplot_HEAD57k_Age_","noe",".pdf"),width = 9,height = 6)
-
-```
 
 make Dimplot of tSNE
 ```{r}
