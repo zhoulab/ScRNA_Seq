@@ -56,7 +56,7 @@ library(DESeq2)
 Load work image (if there is one)
 ```{r}
 #This is the work.image saved on local terminal
-load("GSE107451_head_ALL_57k.RData")
+load("GSE107451_head_ALL_57k_clean.RData")
 ```
 
 Import data and create Seurat object
@@ -168,26 +168,41 @@ lowest_standard_markers <-
                  min.pct = 0,
                  logfc.threshold = 0,
                  group.by ="annotation")
-#dotplot of III markers
-lowest_standard_markers_dotplot <- DotPlot(ALL_HEAD_57k3, features = III_Marker_Genes)+
-    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
-  coord_flip()
-View(lowest_standard_markers_dotplot$data)
-
-#export dotplot of III markers
-pdf("./results/Dotplot/III_Markers_dotplot.pdf",
-    width = 30,
-    height = 10)
-lowest_standard_markers_dotplot
-dev.off()
-
-#export dotplot data () of III markers
-openxlsx::write.xlsx(lowest_standard_markers_dotplot$data[lowest_standard_markers_dotplot$data$features.plot%in%III_Marker_Genes,],
-                     "./processed_data/lowest_standard_markers_III_markers.xlsx",
-                     rowNames=F)
 
 ```
 
+
+Export FindAllMarkers result For IMs, female_target_ImmuneGenes, and male_target_ImmuneGenes
+Note: female_target_ImmuneGenes and male_target_ImmuneGenes are generated in latter section when DEseq was performed on aggregated count to compare to Bulk RNAseq data.
+```{r}
+# IMs
+openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%III_Marker_Genes,],
+                     "./processed_data/lowest_standard_markers_III_markers.xlsx",
+                     rowNames=T)
+# female_target_ImmuneGenes
+openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%female_target_ImmuneGenes,],
+                     "./processed_data/lowest_standard_markers_female_target_ImmuneGenes.xlsx",
+                     rowNames=T)
+# male_target_ImmuneGenes
+openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%male_target_ImmuneGenes,],
+                     "./processed_data/lowest_standard_markers_male_target_ImmuneGenes.xlsx",
+                     rowNames=T)
+
+```
+
+
+Import the FindAllMarkers results for IMs, female_target_ImmuneGenes, and male_target_ImmuneGenes
+```{r}
+lowest_standard_markers_III_markers <- read.xlsx("./processed_data/lowest_standard_markers_III_markers.xlsx",
+                                                 rowNames = T,
+                                                 colNames = T)
+lowest_standard_markers_female_target_ImmuneGenes <- read.xlsx("./processed_data/lowest_standard_markers_female_target_ImmuneGenes.xlsx",
+                                                 rowNames = T,
+                                                 colNames = T)
+lowest_standard_markers_male_target_ImmuneGenes <- read.xlsx("./processed_data/lowest_standard_markers_male_target_ImmuneGenes.xlsx",
+                                                 rowNames = T,
+                                                 colNames = T)
+```
 
 
 Objective 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data on a holistic level. Which increased or decreased
@@ -316,7 +331,7 @@ Run_DESeq2_Pseudo_HEAD_Cells function Using Universally acknowledged thresholds:
 Some results will later be used for generating ranked gene lists of DGRP-551 immune genes for female and male
 
 ```{r}
-#This comparison below took some time
+
 Run_DESeq2_Pseudo_HEAD_Cells(
   PSEUDO_INPUT=Pseudo_HEAD_Cells,
   STRAIN="DGRP-551",
@@ -424,6 +439,17 @@ male_target_ImmuneGenes <-
 
 Based on findallmarkers result, determine the percentage expression of these immune genes in different clusters. Potential clusters can be identified.
 
+# Find annotated clusters first
+```{r}
+#sort(unique(ALL_HEAD_57k3$annotation))
+
+annotated_clusters <- unique(ALL_HEAD_57k3$annotation)[
+  !grepl("^[0-9]+$", unique(ALL_HEAD_57k3$annotation))
+  ]
+sort(annotated_clusters)
+```
+
+
 female
 ```{r}
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
@@ -440,14 +466,19 @@ pdf("./results/Dotplot/female_target_ImmuneGenes_dotplot.pdf",
 female_target_ImmuneGenes_dotplot
 dev.off()
 
-#export dotplot data () of female_target_ImmuneGenes
-openxlsx::write.xlsx(female_target_ImmuneGenes_dotplot$data[female_target_ImmuneGenes_dotplot$data$features.plot%in%female_target_ImmuneGenes,],
-                     "./processed_data/lowest_standard_markers_female_target_ImmuneGenes.xlsx",
-                     rowNames=F)
+# Make another dot plot that only includes annotated clusters
+pdf("./results/Dotplot/female_target_ImmuneGenes_dotplot_annotated.pdf",
+    width = 25,
+    height = 6)
+DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = female_target_ImmuneGenes,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+dev.off()
 ```
 
 male
 ```{r}
+Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
 
 #dotplot of male_target_ImmuneGenes
 male_target_ImmuneGenes_dotplot <- DotPlot(ALL_HEAD_57k3, features = male_target_ImmuneGenes,group.by = "annotation")+
@@ -461,10 +492,40 @@ pdf("./results/Dotplot/male_target_ImmuneGenes_dotplot.pdf",
 male_target_ImmuneGenes_dotplot
 dev.off()
 
-#export dotplot data () of male_target_ImmuneGenes
-openxlsx::write.xlsx(male_target_ImmuneGenes_dotplot$data[male_target_ImmuneGenes_dotplot$data$features.plot%in%male_target_ImmuneGenes,],
-                     "./processed_data/lowest_standard_markers_male_target_ImmuneGenes.xlsx",
-                     rowNames=F)
+# Make another dot plot that only includes annotated clusters
+pdf("./results/Dotplot/male_target_ImmuneGenes_dotplot_annotated.pdf",
+    width = 25,
+    height = 6)
+DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = male_target_ImmuneGenes,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+dev.off()
+```
+
+IMs
+```{r}
+Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
+
+#dotplot of III_Marker_Genes
+III_Marker_Genes_dotplot <- DotPlot(ALL_HEAD_57k3, features = III_Marker_Genes,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+
+#export dotplot of III_Marker_Genes
+pdf("./results/Dotplot/III_Marker_Genes_dotplot.pdf",
+    width = 25,
+    height = 6)
+III_Marker_Genes_dotplot
+dev.off()
+
+# Make another dot plot that only includes annotated clusters
+pdf("./results/Dotplot/III_Marker_Genes_dotplot_annotated.pdf",
+    width = 25,
+    height = 6)
+DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = III_Marker_Genes,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+dev.off()
 ```
 
 
@@ -1229,12 +1290,8 @@ plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 
 
-
-
-
-
 save work image
 ```{r}
-save.image("./GSE107451_head_ALL_57k.RData")
+save.image("./GSE107451_head_ALL_57k_clean.RData")
 ```
 
