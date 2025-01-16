@@ -43,10 +43,7 @@ library(Matrix)
 library(dplyr)
 library(data.table)
 library(tidyverse)
-library(clustree)
 library(openxlsx)
-library(presto)
-library(EnhancedVolcano)
 library(ggrepel)
 library(gplots)
 library(DESeq2)
@@ -468,10 +465,10 @@ dev.off()
 
 # Make another dot plot that only includes annotated clusters
 pdf("./results/Dotplot/female_target_ImmuneGenes_dotplot_annotated.pdf",
-    width = 25,
-    height = 6)
+    width = 15,
+    height = 5)
 DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = female_target_ImmuneGenes,group.by = "annotation")+
-    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+    theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
   coord_flip()
 dev.off()
 ```
@@ -494,10 +491,10 @@ dev.off()
 
 # Make another dot plot that only includes annotated clusters
 pdf("./results/Dotplot/male_target_ImmuneGenes_dotplot_annotated.pdf",
-    width = 25,
-    height = 6)
+    width = 15,
+    height = 5)
 DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = male_target_ImmuneGenes,group.by = "annotation")+
-    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+    theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
   coord_flip()
 dev.off()
 ```
@@ -520,10 +517,10 @@ dev.off()
 
 # Make another dot plot that only includes annotated clusters
 pdf("./results/Dotplot/III_Marker_Genes_dotplot_annotated.pdf",
-    width = 25,
-    height = 6)
+    width = 15,
+    height = 5)
 DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = III_Marker_Genes,group.by = "annotation")+
-    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+    theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
   coord_flip()
 dev.off()
 ```
@@ -1006,6 +1003,20 @@ plot_gene_expression_before_after_4ages <- function(df, gene, genotype, sex, fir
   library(dplyr)
   library(tidyr)
   
+  # Generate the column pattern for the specific genotype, sex (age is filtered in later part of the function)
+  pattern <- paste0(genotype, "_", sex, "_")
+  
+  # Filter columns matching the pattern
+  selected_cols <- grep(pattern, colnames(df), value = TRUE)
+  
+  # Exclude unannotated clusters
+  selected_cols <- selected_cols[!grepl("^[0-9]+$", sub(".*_", "", selected_cols))]
+  
+  
+  # Subset the expression matrix
+  filtered_df <- df[, selected_cols]
+  filtered_df <- as.data.frame(filtered_df);
+  
   # Filter columns based on metadata inputs
   pattern_first <- paste0(genotype, "_", sex, "_", first_age, "_")
   pattern_second <- paste0(genotype, "_", sex, "_", second_age, "_")
@@ -1024,12 +1035,16 @@ plot_gene_expression_before_after_4ages <- function(df, gene, genotype, sex, fir
   clusters_fourth <- sub(paste0("_", fourth_age), "", fourth_cols)
   
   # Identify top n clusters by expression in the fourth_age
-  df_tmp <- df[gene, ]
-  df_tmp <- df_tmp[, fourth_cols]
+  df_tmp <- filtered_df
+  df_tmp <- as.data.frame(df_tmp)
+  df_tmp <- df_tmp[,colnames(df_tmp)%in%fourth_cols]
+  df_tmp <- df_tmp[rownames(df_tmp)==gene,]
   df_tmp <- as.matrix(df_tmp)
   df_tmp <- df_tmp[, order(df_tmp[1, ], decreasing = TRUE)]
   df_tmp <- df_tmp[1:TOP_N_CLUSTERS]
   df_tmp <- as.data.frame(df_tmp)
+  
+  # re-enter value for 1:TOP_N_CLUSTERS in clusters_fourth
   fourth_cols <- rownames(df_tmp)
   clusters_fourth <- sub(paste0("_", fourth_age), "", fourth_cols)
   
@@ -1082,7 +1097,7 @@ plot_gene_expression_before_after_4ages <- function(df, gene, genotype, sex, fir
   #change colnames for merge
   colnames(plot_data_long)[1] <- "Genotype_Sex_Cluster"
   plot_data_long$"Genotype_Sex_Cluster_Age" <- paste0(plot_data_long$"Genotype_Sex_Cluster","_",plot_data_long$Age)
-    
+  #change colnames for merge
   cell_number_df$"Genotype_Sex_Cluster_Age" <- paste0(cell_number_df$Genotype,"_",cell_number_df$Sex,"_",cell_number_df$Cluster,"_",cell_number_df$Age);
   #merge plot_data_long and cell_number_df
   plot_data_long <- merge(plot_data_long,cell_number_df,by="Genotype_Sex_Cluster_Age")
@@ -1121,6 +1136,7 @@ plot_gene_expression_before_after_4ages(
   TOP_N_CLUSTERS = 7,
   cell_number_df = cell_number_Genotype_Sex_Age_Cluster
   )
+
 
 ```
 
@@ -1225,11 +1241,13 @@ plot_gene_expression_heatmap <- function(df, genes, genotype, sex, age) {
   # Prepare a matrix for the heatmap
   heatmap_matrix <- as.matrix(filtered_df)
   
-   
+  # log2 transformation (to make the color span less)
+  heatmap_matrix <- log2(heatmap_matrix+1)
+  
   # Define a color scale for the heatmap
   col_fun <- colorRamp2(
     breaks = c(min(heatmap_matrix), median(heatmap_matrix), max(heatmap_matrix)),
-    colors = c("blue", "white", "red")
+    colors = c("#008080", "#FFFFFF", "#FFD700")
   )
   
   # Limit colnames of heatmap_matrix to only clusters
@@ -1239,12 +1257,12 @@ plot_gene_expression_heatmap <- function(df, genes, genotype, sex, age) {
   # Generate the heatmap
   heatmap <- Heatmap(
     heatmap_matrix,
-    name = "Expression",
+    name = "log2(Expression)",
     col = col_fun,
     row_names_side = "left",
     column_names_side = "bottom",
-    cluster_rows = T, # similarity clusters on rows (genes)
-    cluster_columns = T, # similarity clusters on columns (clusters)
+    cluster_rows = F, # similarity clusters on rows (genes)
+    cluster_columns = T, # similarity clusters on columns (clusters); enabled
     show_row_names = TRUE,
     show_column_names = TRUE,
     row_title = "Genes",
@@ -1262,6 +1280,8 @@ plot_gene_expression_heatmap <- function(df, genes, genotype, sex, age) {
 
 
 # usage example
+
+# DGRP-551
 plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
                              genes=female_target_ImmuneGenes,
                              genotype="DGRP-551",
@@ -1285,6 +1305,18 @@ plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
                              genotype="DGRP-551",
                              sex="male", 
                              age="50")
+# w1118
+plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                             genes=female_target_ImmuneGenes,
+                             genotype="w1118",
+                             sex="female", 
+                             age="30")
+
+plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                             genes=male_target_ImmuneGenes,
+                             genotype="w1118",
+                             sex="male", 
+                             age="30")
 ```
 
 
