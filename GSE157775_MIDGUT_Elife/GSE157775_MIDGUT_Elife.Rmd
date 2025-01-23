@@ -22,11 +22,8 @@ library(ggplot2)
 library(cowplot)
 library(Matrix)
 library(dplyr)
-library(ggsci)
 library(data.table)
 library(tidyverse)
-library(patchwork)
-library(clustree)
 library(remotes)
 library(data.table)
 library(ggrepel)
@@ -38,7 +35,7 @@ load("./MIDGUT_Elife_wkimage.RData")
 ```
 
 
-create an obj of III markers
+create an obj of III markers (lab's Bulk IMs)
 ```{r}
 III_Markers <- c("SPH93",
                  "CecA1",
@@ -55,6 +52,7 @@ III_Markers <- c("SPH93",
 ```
 
 
+Import SOBJ and author's annotation
 ```{r}
 Author_metadata <- fread("./raw_data/GSE157775_cell_annotation.csv",header = T)
 MIDGUT_Elife <- readRDS("./raw_data/GSE157775_sce.RDS")
@@ -69,6 +67,83 @@ table(
   MIDGUT_Elife@meta.data$cellID%in%Author_metadata$cellID
 )
 ```
+Export the seurat object to a dataframe where rows are gene IDs, and columns are cells; Need to convert FBgn to gene symbols first with flybase ID validator, then convert the datafram back to SOBJ (otherwise features generated in every slot will be FBgn, currently cannot be directly converted, not even coerce)
+```{r}
+expr_df <- GetAssayData(MIDGUT_Elife, layer = "counts")  # for counts
+
+# Convert to a dataframe
+expr_df <- as.data.frame(as.matrix(expr_df))
+
+# Ensure the row names are gene IDs and column names are cell IDs
+write.table(file = "./processed_data/SOBJ/MIDGUT_SOBJ_FBgn.txt",
+            rownames(expr_df),
+            sep = ",",
+            quote = F,
+            col.names = F,
+            row.names = F
+            )
+
+```
+
+
+Provides tables for converting and annotating Ensembl Gene IDs.
+```{r}
+#devtools::install_github("stephenturner/annotables")
+library(annotables)
+BDGP6 <- annotables::bdgp6
+
+table(duplicated(BDGP6$symbol))
+table(duplicated(rownames(expr_df)))
+
+BDGP6 <- BDGP6[!duplicated(BDGP6$ensgene),]
+BDGP6 <- BDGP6[!duplicated(BDGP6$symbol),]
+table(duplicated(BDGP6$symbol))
+
+
+table(rownames(expr_df)%in%BDGP6$ensgene)
+```
+
+
+Convert FBgn to Gene symbol
+```{r}
+convert_fbgn_to_symbol <- function(expr_df, annotation_df) {
+  expr_df$FBgn <- rownames(expr_df)
+
+  # Merge annotation (BDGP6) with expression data
+  merged_df <- merge(expr_df, annotation_df[, c("ensgene", "symbol")], 
+                     by.x = "FBgn", by.y = "ensgene", all.x = TRUE)
+
+  # Ensure unique gene symbols
+  merged_df$symbol <- make.unique(as.character(merged_df$symbol))
+
+  # Set rownames as FBgn (to avoid duplicates)
+  rownames(merged_df) <- merged_df$FBgn
+
+  # Keep Gene Symbol as a separate column
+  merged_df <- merged_df[, c("symbol", setdiff(colnames(merged_df), c("symbol", "FBgn")))]
+
+  return(merged_df)
+}
+
+
+
+# Convert FBgn IDs to Gene Symbols
+converted_expr_df <- convert_fbgn_to_symbol(expr_df, BDGP6)
+converted_expr_df <- na.omit(converted_expr_df)
+rownames(converted_expr_df) <- converted_expr_df$symbol
+converted_expr_df <- converted_expr_df[,-1]
+
+dim(converted_expr_df)
+```
+
+convert mapped expr to SOBJ
+```{r}
+MIDGUT_Elife2 <- CreateSeuratObject(counts = converted_expr_df)
+
+# add cellID in meta.data slot of SOBJ
+MIDGUT_Elife2@meta.data$'cellID' <- colnames(converted_expr_df)
+```
+
 
 For the scRNA-seq experiments, we used the wild-type WDah fly line and dissected whole midguts at young (~7d), mid-age (~30d) and old time-points (~60d)
 
@@ -100,42 +175,31 @@ merge_metadata <- function(seurat_obj, external_metadata, cell_id_col) {
 }
 
 # Example usage:
-MIDGUT_Elife <- merge_metadata(MIDGUT_Elife, Author_metadata,cell_id_col = "cellID")
+MIDGUT_Elife2 <- merge_metadata(MIDGUT_Elife2, Author_metadata,cell_id_col = "cellID")
 
 ```
 
 change active ident to assigned_cell_type
 ```{r}
-Idents(MIDGUT_Elife) <- MIDGUT_Elife@meta.data$assigned_cell_type
+Idents(MIDGUT_Elife2) <- MIDGUT_Elife2@meta.data$assigned_cell_type
 ```
 
+#############
+#############MARK
+##############
+##############
 #run standard pipeline of seurat
 ```{r}
 # run standard anlaysis workflow
-MIDGUT_Elife2 <- NormalizeData(MIDGUT_Elife)
+MIDGUT_Elife2 <- NormalizeData(MIDGUT_Elife2)
 MIDGUT_Elife2 <- FindVariableFeatures(MIDGUT_Elife2)
 MIDGUT_Elife2 <- ScaleData(MIDGUT_Elife2)
 
 min(nrow(MIDGUT_Elife2), ncol(MIDGUT_Elife2))
-MIDGUT_Elife2 <- RunPCA(MIDGUT_Elife2,npcs = 50,verbose = F)
-# 
-# #see turMIDGUT_Elifeng point
-# pdf("./MIDGUT_Elife_elbowplot.pdf",width = 30,height = 20)
-# ElbowPlot(MIDGUT_Elife2, ndims=50, reduction="pca")
-# dev.off()
+MIDGUT_Elife2 <- RunPCA(MIDGUT_Elife2,npcs = 50,verbose = T)
 
 
 MIDGUT_Elife2 <- FindNeighbors(MIDGUT_Elife2, dims = 1:30, reduction = "pca", verbose=TRUE)
-
-#MIDGUT_Elife2 <- FindClusters(MIDGUT_Elife2, resolution = 0.2, cluster.name = "MIDGUT_Elife_clusters")
-# 
-# #View(MIDGUT_Elife2@meta.data)
-# library(clustree)
-# #see resolution
-# pdf(paste0("./cluster_tree.pdf"),width = 60,height = 40)
-# clustree(FindClusters(MIDGUT_Elife2, resolution = seq(0.2,0.6,by=0.05)))
-# dev.off()
-
 
 
 MIDGUT_Elife2 <- FindClusters(MIDGUT_Elife2, resolution = 0.6, cluster.name = "MIDGUT_Elife_clusters")
@@ -143,10 +207,9 @@ MIDGUT_Elife2 <- FindClusters(MIDGUT_Elife2, resolution = 0.6, cluster.name = "M
 ```
 
 
-#Run UMAP and tSEN (optional)
+#Run UMAP to build the reduciton slot of SOBJ
 ```{r}
 
-#MIDGUT_Elife3 <- RunTSNE(MIDGUT_Elife2, dims = 1:30, reduction = "pca", reduction.name = "tSNE_MIDGUT_Elife",verbose=T)
 MIDGUT_Elife3 <- RunUMAP(MIDGUT_Elife2, dims = 1:30, reduction = "pca", reduction.name = "UMAP_MIDGUT_Elife",verbose=T)
 
 
