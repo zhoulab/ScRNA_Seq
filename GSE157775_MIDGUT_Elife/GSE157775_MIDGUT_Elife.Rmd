@@ -4,8 +4,9 @@ output: html_notebook
 ---
 
 #Objective: 
-## 1. First check if there is any hemocytes in this dataset
-## 2. Check if III markers are expressed in other cells in midgut
+## 1. First check if there is any hemocytes in this dataset (no)
+## 2. Check if lab's Bulk IMs are expressed in other cells in midgut
+## 3. Check if there is inflammaging on a holistic level (day 60)
 
 #Important files***:
 ## 1. GSE157775_cell_annotation.csv: Auhtor's annotation
@@ -179,15 +180,35 @@ MIDGUT_Elife2 <- merge_metadata(MIDGUT_Elife2, Author_metadata,cell_id_col = "ce
 
 ```
 
-change active ident to assigned_cell_type
+change some names of meta.data slot so functions from 57KBrain dataset can be used if needed ("Genotype","sex","Age","Replicate")
+Note: this midgut dataset has only: In total, we had two young, one mid-age and two old samples.
 ```{r}
-Idents(MIDGUT_Elife2) <- MIDGUT_Elife2@meta.data$assigned_cell_type
+#View(MIDGUT_Elife2@meta.data)
+# batch is replicate; age is age; assigned_cell_type is annotation; 
+MIDGUT_Elife2@meta.data$'Genotype' <- "WDah_WT"
+MIDGUT_Elife2@meta.data$'sex' <- "Mix"
+colnames(MIDGUT_Elife2@meta.data)
+colnames(MIDGUT_Elife2@meta.data)[15] <- "Replicate"
+colnames(MIDGUT_Elife2@meta.data)[16] <- "Age"
+colnames(MIDGUT_Elife2@meta.data)[20] <- "annotation"
+
+
+#look at how many replicates of each age exist in this dataset
+table(paste0(MIDGUT_Elife2@meta.data$Age,"_",MIDGUT_Elife2@meta.data$replicate))
+
+
 ```
 
-#############
-#############MARK
-##############
-##############
+change active ident to assigned_cell_type
+```{r}
+Idents(MIDGUT_Elife2) <- MIDGUT_Elife2@meta.data$annotation
+```
+
+
+
+
+
+
 #run standard pipeline of seurat
 ```{r}
 # run standard anlaysis workflow
@@ -225,146 +246,21 @@ MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings[,2] <- MIDGUT_El
 
 head(MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings)
 
-
+#change active idents to annotation
 Idents(MIDGUT_Elife3) <- MIDGUT_Elife3@meta.data$annotation
-
-
 ```
+
 
 #DimPlot of UMAP
 ```{r}
 
 #Now plot the UMAP Dimplot
-
-pdf("./Dimplot/MIDGUT_Elife_UMAP_Dimplot.pdf",width = 9,height = 6)
-DimPlot(MIDGUT_Elife3,reduction = "UMAP_MIDGUT_Elife",raster = F,label = T)
+pdf("./results/Dimplot/MIDGUT_Elife_UMAP_Dimplot.pdf",width = 9,height = 6)
+DimPlot(MIDGUT_Elife3,reduction = "UMAP_MIDGUT_Elife",raster = F,label = T,group.by = "annotation")
 dev.off()
 
 ```
-
-#convert FBgn to gene symbol in counts slot
-```{r}
-rownames(MIDGUT_Elife3@assays$originalexp$counts)
-
-
-dim(MIDGUT_Elife3@assays$originalexp$counts)
-#[1] 12872 12149
-
-MIDGUT_Elife3@assays$originalexp$counts
-
-
-
-originalexp_counts <- as.data.frame(MIDGUT_Elife3@assays$originalexp$counts)
-#########mapping FBGN to gene symbol
-
-annotation_table <- fread("./FBgn2Symbol.csv",header = F)
-
-#map ID
-ID_to_symbol <- function(expr_data){
-  df=expr_data
-  if(sum(colnames(df)=="gene_name", na.rm=TRUE)){
-    df$gene_name <- ""
-    for (i in 1:nrow(df)){
-      if(df$ID[i]%in%annotation_table$V1==TRUE){
-        df$gene_name[i] <-
-          annotation_table$V2[which(df$ID[i]==annotation_table$V1)]
-      }else{
-        df$gene_name[i] <- "No_map"
-      }
-    }
-    print(
-      paste(sum(df$gene_name=="No_map", na.rm=TRUE)," _unmapped",sum(df$gene_name!="No_map", na.rm=TRUE)," mapped")
-    );
-  }
-  else{
-    print("there is no column called 'gene_name', use df$gene_name <- ''");
-  }
-  return(df)
-}
-
-originalexp_counts$ID <- rownames(originalexp_counts)
-originalexp_counts$gene_name <- ''
-
-originalexp_counts2 <- ID_to_symbol(originalexp_counts)
-#"32  _unmapped 12840  mapped"
-
-
-which(originalexp_counts2$gene_name=="No_map")
-
-##get the FBGN of these unmapped ID
-
-originalexp_counts2$ID[which(originalexp_counts2$gene_name=="No_map")]
-####might need to manually map these with flybase ID validator
-
-write.table(file = "./Unampped_ID.txt",
-            originalexp_counts2$ID[which(originalexp_counts2$gene_name=="No_map")],
-            sep = ",",
-            quote = F,
-            col.names = F,
-            row.names = F
-            )
-####
-```
-
-#import unmapped2symbol done based on flybase ID validator
-```{r}
-unmapped2symbol <- fread("./FlyBase_Fields_download_Unmapped2Symbol.txt",header = T)
-
-originalexp_counts2$gene_name[which(originalexp_counts2$gene_name=="No_map")] <- unmapped2symbol$SYMBOL
-
-originalexp_counts2$gene_name[which(originalexp_counts2$gene_name=="No_map")]
-#character(0)
-#successfully mapped
-
-
-#convert FBgn in counts slot in midgut seurat obj into gene symbol, so feature plot can be made
-MIDGUT_Elife3@assays[["originalexp"]]@counts@Dimnames[[1]] <- originalexp_counts2$gene_name
-
-MIDGUT_Elife3@assays[["originalexp"]]@var.features <- originalexp_counts2$gene_name
-
-MIDGUT_Elife3@assays[["originalexp"]]@data@Dimnames[[1]]<- originalexp_counts2$gene_name
-
-MIDGUT_Elife3@assays[["originalexp"]]@meta.features[["gene_name"]]<- originalexp_counts2$gene_name
-
-#check now
-MIDGUT_Elife3@assays[["originalexp"]]@counts@Dimnames[[1]]
-MIDGUT_Elife3@assays[["originalexp"]]@var.features
-MIDGUT_Elife3@assays[["originalexp"]]@data@Dimnames[[1]]
-MIDGUT_Elife3@assays[["originalexp"]]@meta.features[["gene_name"]]
-#now FBgn is converted to gene symbol in all slots
-```
-
-#generate feature plot of III markers
-```{r}
-Assays(MIDGUT_Elife3)
-DefaultAssay(MIDGUT_Elife3) 
-
-#feature plot based on UMAP reduction
-for (i in length(III_Markers)) {
-  tmp <- Seurat::FeaturePlot(MIDGUT_Elife3, features = III_Markers[i],  cols = c("grey","darkred"), reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts");
-  ggsave(tmp,device = "pdf",file= paste0("./Featureplot/Featureplot_MIDGUT_UMAP_",III_Markers[i],".pdf"),width = 9,height = 6);
-}
-
-#plot hemocyte-specific marker Hml
-ggsave(Seurat::FeaturePlot(MIDGUT_Elife3, features = "Hml",  cols = c("grey","darkred"), reduction = "UMAP_MIDGUT_Elife",keep.scale = "feature",slot = "counts",raster = F,pt.size = 0.005),
-       device = "pdf",
-       file= paste0("./Featureplot/Featureplot_MIDGUT_UMAP_","Hml",".pdf"),width = 9,height = 6)
-```
-
-find marker genes in each cluster
-```{r}
-
-Idents(MIDGUT_Elife3) <- MIDGUT_Elife3@meta.data$annotation
-# 
-# MIDGUT_Elife3@assays[["RNA"]] <- MIDGUT_Elife3@assays[["originalexp"]]
-# 
-# SCTransform(MIDGUT_Elife3)
-
-#JoinLayers(MIDGUT_Elife3)
-
-all.markers <- FindAllMarkers(MIDGUT_Elife3, test.use = 'wilcox', only.pos = F, min.pct = 0, logfc.threshold = 0,group.by="annotation")
-
-```
+#########################################MARK
 
 
 #save wk image
