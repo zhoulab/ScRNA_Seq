@@ -4,9 +4,9 @@ output: html_notebook
 ---
 
 #Objective: 
-## 1. First check if there is any hemocytes in this dataset (no)
+
+## 1. Check if there is inflammaging on a holistic level (day 60)
 ## 2. Check if lab's Bulk IMs are expressed in other cells in midgut
-## 3. Check if there is inflammaging on a holistic level (day 60)
 
 #Important files***:
 ## 1. GSE157775_cell_annotation.csv: Auhtor's annotation
@@ -28,6 +28,8 @@ library(tidyverse)
 library(remotes)
 library(data.table)
 library(ggrepel)
+library(DESeq2)
+library(openxlsx)
 ```
 
 load saved wkimage if needed
@@ -55,7 +57,7 @@ III_Markers <- c("SPH93",
 
 Import SOBJ and author's annotation
 ```{r}
-Author_metadata <- fread("./raw_data/GSE157775_cell_annotation.csv",header = T)
+Author_metadata <- fread("./raw_data/GSE157775_cell_annotation.csv",GUTer = T)
 MIDGUT_Elife <- readRDS("./raw_data/GSE157775_sce.RDS")
 
 #convert into seurat OBJ
@@ -237,14 +239,14 @@ MIDGUT_Elife3 <- RunUMAP(MIDGUT_Elife2, dims = 1:30, reduction = "pca", reductio
 
 #change UMAP reduction coordinates to Author's
 
-head(MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings)
+GUT(MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings)
 
 #change reduciton UAMP coordinates to the one in authos's annotation
 MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings[,1] <- MIDGUT_Elife3@meta.data$UMAP_1
 
 MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings[,2] <- MIDGUT_Elife3@meta.data$UMAP_2
 
-head(MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings)
+GUT(MIDGUT_Elife3@reductions[["UMAP_MIDGUT_Elife"]]@cell.embeddings)
 
 #change active idents to annotation
 Idents(MIDGUT_Elife3) <- MIDGUT_Elife3@meta.data$annotation
@@ -260,7 +262,152 @@ DimPlot(MIDGUT_Elife3,reduction = "UMAP_MIDGUT_Elife",raster = F,label = T,group
 dev.off()
 
 ```
-#########################################MARK
+Objective 1. Check if there is inflammaging on a holistic level (day 60)
+
+aggregate expression, split by genotype, sex, age, and replicate.
+```{r}
+Pseudo_GUT_Cells <- as.data.frame(
+  AggregateExpression(MIDGUT_Elife3,
+                      assays = "RNA",
+                      group.by = c("Genotype","sex","Age","Replicate")
+                      )$RNA
+  )
+
+dim(Pseudo_GUT_Cells)
+#[1] 12871     5
+
+colnames(Pseudo_GUT_Cells) <- c("WDah_Mixed_30_1","WDah_Mixed_60_2","WDah_Mixed_60_3","WDah_Mixed_7_1","WDah_Mixed_7_2")
+colnames(Pseudo_GUT_Cells)
+
+#Export the the converted Pseudobulk expression to local dir for DE
+openxlsx::write.xlsx(Pseudo_GUT_Cells,
+                     "./processed_data/Pseudo_GUT_Cells.xlsx",
+                     rowNames=T
+                     )
+```
+
+Make a function to Run DESeq2 for Pseudo_GUT_Cells variable.
+
+This function is dependent on DO_DEseq function in DEseq2_Differential_Expression_Feb22_2024.docx on OneDrive.
+
+This function is solely written for objectice 1.1&1.3 to compare this GUT57k data with lab's Bulk_RNAseq data on a holistic level.
+
+```{r}
+#library the DE_DEseq function (see star_DEseq protocol on onedrive)
+Do_DEseq <- 
+  function(Counts_matrix,
+           n_TR,                # 
+           n_CR,                #
+           p_thresh,            #
+           log2FC_thresh,       #
+           File_Title){        #
+  # make meta for DEseq (make a variable that tells DEseq which columns are controls and which are treatment ones)
+  
+meta <- colnames(Counts_matrix)
+
+meta <- as.data.frame(meta)
+
+rownames(meta) <- meta[,1]
+
+  meta$"Condition" <- c(rep("TR",n_TR),rep("CR",n_CR))
+  
+  
+  meta$Condition <- factor(meta$Condition,levels = c("CR","TR"))
+  
+  # make the dds object for DEseq
+  
+  dds <- DESeqDataSetFromMatrix(countData = Counts_matrix,
+                              colData = meta,
+                              design= ~ Condition)
+  dds <- DESeq(dds)
+  res <- results(dds, pAdjustMethod = "BH")
+  
+  #extracting result
+  res1 <- data.frame(res, stringsAsFactors = FALSE, check.names = FALSE)
+
+  res1 <- na.omit(res1)
+res1 <- res1[order(res1$padj, res1$log2FoldChange, decreasing = c(FALSE, TRUE)), ]
+
+
+res1[which(res1$log2FoldChange >= log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'up'
+res1[which(res1$log2FoldChange <= -log2FC_thresh & res1$pvalue < p_thresh),'sig'] <- 'down'
+res1[which(abs(res1$log2FoldChange) <= log2FC_thresh | res1$pvalue >= p_thresh),'sig'] <- 'none'
+
+
+print(
+  paste0(File_Title," up ","total DEGs: ",nrow(res1[res1$'sig'=='up',]))
+      )
+print(res1[res1$'sig'=='up',]
+      )
+
+print(
+  paste0(File_Title," down ","total DEGs: ",nrow(res1[res1$'sig'=='down',]))
+      )
+print(res1[res1$'sig'=='down',]
+      )
+
+
+write.xlsx(res1, paste0("./processed_data/DESeq_result/",File_Title,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='up',],paste0("./processed_data/DESeq_result/",File_Title,"_UP",p_thresh,".xlsx"),rowNames=T)
+
+write.xlsx(res1[res1$'sig'=='down',],paste0("./processed_data/DESeq_result/",File_Title,"_DOWN",p_thresh,".xlsx"),rowNames=T)
+
+
+}
+
+
+#This function is dependent on DO_DEseq function
+Run_DESeq2_Pseudo_GUT_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE){
+  #First remove genes containing just zero;
+  #PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
+  #PSEUDO_INPUT <- na.omit(PSEUDO_INPUT);
+  #PSEUDO_INPUT <- PSEUDO_INPUT+1
+  #First take the subset based on strain and sex
+  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,1]==STRAIN)];
+  PSEUDO_INPUT <- PSEUDO_INPUT[,which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,2]==SEX)];
+  #Obtain the index for old age and young age columns
+  index_old <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,3]==OLD_AGE);
+  index_young <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,3]==YOUNG_AGE);
+  #Obtain the # of columns in each condition
+  N_OLD <- length(index_old);
+  N_YOUNG <- length(index_young);
+  
+  #Run DO_DEseq function to generate results to ./DESeq_result dir
+  Do_DEseq(Counts_matrix=cbind(PSEUDO_INPUT[,index_old],PSEUDO_INPUT[,index_young]), #select the columns in readcount matrix and select treatment sample first then control samples
+           n_TR=N_OLD,   #number of treatment sample             
+           n_CR=N_YOUNG,    #number of control sample            
+           p_thresh=0.05,         #p value threshold   
+           log2FC_thresh=1,       #log2 fold change threshold
+           File_Title=paste0("DESeq_",STRAIN,"_",SEX,"_",OLD_AGE,"_vs_",YOUNG_AGE)
+           )  #xlsx file title
+
+}                                              
+```
+
+
+Run_DESeq2_Pseudo_HEAD_Cells function Using Universally acknowledged thresholds: p<0.05 and log2FC>1 (or you can manually select based on P value in .xlsx that contains both up and down)
+Some results will later be used for generating ranked gene lists of DGRP-551 immune genes for female and male
+```{r}
+
+Run_DESeq2_Pseudo_GUT_Cells(
+  PSEUDO_INPUT=Pseudo_GUT_Cells,
+  STRAIN="WDah",
+  SEX="Mixed",
+  OLD_AGE="30",
+  YOUNG_AGE="7"
+  )
+
+Run_DESeq2_Pseudo_GUT_Cells(
+  PSEUDO_INPUT=Pseudo_GUT_Cells,
+  STRAIN="WDah",
+  SEX="Mixed",
+  OLD_AGE="60",
+  YOUNG_AGE="7"
+  )
+
+```
+
 
 
 #save wk image
