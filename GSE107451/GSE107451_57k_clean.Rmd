@@ -153,34 +153,34 @@ lowest_standard_markers <-
 ```
 
 
-Export FindAllMarkers result For IMs, female_target_ImmuneGenes, and male_target_ImmuneGenes
-Note: female_target_ImmuneGenes and male_target_ImmuneGenes are generated in latter section when DEseq was performed on aggregated count to compare to Bulk RNAseq data.
+Export FindAllMarkers result For IMs, female_target_ImmuneGenes_50, and male_target_ImmuneGenes_50
+Note: female_target_ImmuneGenes_50 and male_target_ImmuneGenes_50 are generated in latter section when DEseq was performed on aggregated count to compare to Bulk RNAseq data.
 ```{r}
 # IMs
 openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%III_Marker_Genes,],
                      "./processed_data/lowest_standard_markers_III_markers.xlsx",
                      rowNames=T)
-# female_target_ImmuneGenes
-openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%female_target_ImmuneGenes,],
-                     "./processed_data/lowest_standard_markers_female_target_ImmuneGenes.xlsx",
+# female_target_ImmuneGenes_50
+openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%female_target_ImmuneGenes_50,],
+                     "./processed_data/lowest_standard_markers_female_target_ImmuneGenes_50.xlsx",
                      rowNames=T)
-# male_target_ImmuneGenes
-openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%male_target_ImmuneGenes,],
-                     "./processed_data/lowest_standard_markers_male_target_ImmuneGenes.xlsx",
+# male_target_ImmuneGenes_50
+openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%male_target_ImmuneGenes_50,],
+                     "./processed_data/lowest_standard_markers_male_target_ImmuneGenes_50.xlsx",
                      rowNames=T)
 
 ```
 
 
-Import the FindAllMarkers results for IMs, female_target_ImmuneGenes, and male_target_ImmuneGenes
+Import the FindAllMarkers results for IMs, female_target_ImmuneGenes_50, and male_target_ImmuneGenes_50
 ```{r}
 lowest_standard_markers_III_markers <- read.xlsx("./processed_data/lowest_standard_markers_III_markers.xlsx",
                                                  rowNames = T,
                                                  colNames = T)
-lowest_standard_markers_female_target_ImmuneGenes <- read.xlsx("./processed_data/lowest_standard_markers_female_target_ImmuneGenes.xlsx",
+lowest_standard_markers_female_target_ImmuneGenes_50 <- read.xlsx("./processed_data/lowest_standard_markers_female_target_ImmuneGenes_50.xlsx",
                                                  rowNames = T,
                                                  colNames = T)
-lowest_standard_markers_male_target_ImmuneGenes <- read.xlsx("./processed_data/lowest_standard_markers_male_target_ImmuneGenes.xlsx",
+lowest_standard_markers_male_target_ImmuneGenes_50 <- read.xlsx("./processed_data/lowest_standard_markers_male_target_ImmuneGenes_50.xlsx",
                                                  rowNames = T,
                                                  colNames = T)
 ```
@@ -372,6 +372,10 @@ DESeq_DGRP551_female_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_D
                                                   rowNames = T)
 DESeq_DGRP551_male_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_male_50_vs_3.xlsx",
                                                   rowNames = T)
+DESeq_DGRP551_female_30_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_female_30_vs_3.xlsx",
+                                                  rowNames = T)
+DESeq_DGRP551_male_30_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_male_30_vs_3.xlsx",
+                                                  rowNames = T)
 ```
 
 
@@ -392,6 +396,17 @@ View(
   subset(DESeq_DGRP551_male_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_50_vs_3)%in%GO_ImmuneDef$V1)
   )
 
+View(
+  subset(DESeq_DGRP551_female_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_30_vs_3)%in%GO_ImmuneDef$V1)
+  )
+
+View(
+  subset(DESeq_DGRP551_male_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_30_vs_3)%in%GO_ImmuneDef$V1)
+  )
+
+
+
+
 write.xlsx(subset(DESeq_DGRP551_female_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_50_vs_3)%in%GO_ImmuneDef$V1),
            rowNames=T,
            "./processed_data/ranked_ImmuneGene_List/DGRP551_female_50_vs_3_ImmuneGene_List.xlsx")
@@ -399,6 +414,15 @@ write.xlsx(subset(DESeq_DGRP551_female_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_
 write.xlsx(subset(DESeq_DGRP551_male_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_50_vs_3)%in%GO_ImmuneDef$V1),
            rowNames=T,
            "./processed_data/ranked_ImmuneGene_List/DGRP551_male_50_vs_3_ImmuneGene_List.xlsx")
+
+
+write.xlsx(subset(DESeq_DGRP551_female_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_30_vs_3)%in%GO_ImmuneDef$V1),
+           rowNames=T,
+           "./processed_data/ranked_ImmuneGene_List/DGRP551_female_30_vs_3_ImmuneGene_List.xlsx")
+
+write.xlsx(subset(DESeq_DGRP551_male_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_30_vs_3)%in%GO_ImmuneDef$V1),
+           rowNames=T,
+           "./processed_data/ranked_ImmuneGene_List/DGRP551_male_30_vs_3_ImmuneGene_List.xlsx")
 ```
 
 
@@ -406,16 +430,25 @@ Objective 5.2 In which clusters are these genes expressed in?
 
 First join target immune genes based on the two xlsx files exported above
 ```{r}
-female_target_ImmuneGenes <- 
+female_target_ImmuneGenes_50 <- 
   rownames(
     subset(DESeq_DGRP551_female_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_50_vs_3)%in%GO_ImmuneDef$V1)
     )
 
-male_target_ImmuneGenes <- 
+male_target_ImmuneGenes_50 <- 
   rownames(
     subset(DESeq_DGRP551_male_50_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_50_vs_3)%in%GO_ImmuneDef$V1)
     )
 
+female_target_ImmuneGenes_30 <- 
+  rownames(
+    subset(DESeq_DGRP551_female_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_female_30_vs_3)%in%GO_ImmuneDef$V1)
+    )
+
+male_target_ImmuneGenes_30 <- 
+  rownames(
+    subset(DESeq_DGRP551_male_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_30_vs_3)%in%GO_ImmuneDef$V1)
+    )
 ```
 
 Based on findallmarkers result, determine the percentage expression of these immune genes in different clusters. Potential clusters can be identified.
@@ -431,76 +464,125 @@ sort(annotated_clusters)
 ```
 
 
-female
+female 50
 ```{r}
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
 
-#dotplot of female_target_ImmuneGenes
-female_target_ImmuneGenes_dotplot <- DotPlot(ALL_HEAD_57k3, features = female_target_ImmuneGenes,group.by = "annotation")+
+#dotplot of female_target_ImmuneGenes_50
+female_target_ImmuneGenes_50_dotplot <- DotPlot(ALL_HEAD_57k3, features = female_target_ImmuneGenes_50,group.by = "annotation")+
     theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
   coord_flip()
 
-#export dotplot of female_target_ImmuneGenes
-pdf("./results/Dotplot/female_target_ImmuneGenes_dotplot.pdf",
+#export dotplot of female_target_ImmuneGenes_50
+pdf("./results/Dotplot/female_target_ImmuneGenes_50_dotplot.pdf",
     width = 25,
     height = 6)
-female_target_ImmuneGenes_dotplot
+female_target_ImmuneGenes_50_dotplot
 dev.off()
 
 # Make another dot plot that only includes annotated clusters
-pdf("./results/Dotplot/female_target_ImmuneGenes_dotplot_annotated.pdf",
+pdf("./results/Dotplot/female_target_ImmuneGenes_50_dotplot_annotated.pdf",
     width = 15,
     height = 5)
-DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = female_target_ImmuneGenes,group.by = "annotation")+
+DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = female_target_ImmuneGenes_50,group.by = "annotation")+
     theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
   coord_flip()
 dev.off()
 ```
 
-male
-```{r}
-Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
 
-#dotplot of male_target_ImmuneGenes
-male_target_ImmuneGenes_dotplot <- DotPlot(ALL_HEAD_57k3, features = male_target_ImmuneGenes,group.by = "annotation")+
+female 30
+```{r}
+
+#dotplot of female_target_ImmuneGenes_30
+female_target_ImmuneGenes_30_dotplot <- DotPlot(ALL_HEAD_57k3, features = female_target_ImmuneGenes_30,group.by = "annotation")+
     theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
   coord_flip()
 
-#export dotplot of male_target_ImmuneGenes
-pdf("./results/Dotplot/male_target_ImmuneGenes_dotplot.pdf",
+#export dotplot of female_target_ImmuneGenes_30
+pdf("./results/Dotplot/female_target_ImmuneGenes_30_dotplot.pdf",
     width = 25,
     height = 6)
-male_target_ImmuneGenes_dotplot
+female_target_ImmuneGenes_30_dotplot
 dev.off()
 
 # Make another dot plot that only includes annotated clusters
-pdf("./results/Dotplot/male_target_ImmuneGenes_dotplot_annotated.pdf",
+pdf("./results/Dotplot/female_target_ImmuneGenes_30_dotplot_annotated.pdf",
     width = 15,
     height = 5)
-DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = male_target_ImmuneGenes,group.by = "annotation")+
+DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = female_target_ImmuneGenes_30,group.by = "annotation")+
     theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
   coord_flip()
 dev.off()
 ```
 
-IMs
+male 50
 ```{r}
 Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3$annotation
 
+#dotplot of male_target_ImmuneGenes_50
+male_target_ImmuneGenes_50_dotplot <- DotPlot(ALL_HEAD_57k3, features = male_target_ImmuneGenes_50,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+
+#export dotplot of male_target_ImmuneGenes_50
+pdf("./results/Dotplot/male_target_ImmuneGenes_50_dotplot.pdf",
+    width = 25,
+    height = 6)
+male_target_ImmuneGenes_50_dotplot
+dev.off()
+
+# Make another dot plot that only includes annotated clusters
+pdf("./results/Dotplot/male_target_ImmuneGenes_50_dotplot_annotated.pdf",
+    width = 15,
+    height = 5)
+DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = male_target_ImmuneGenes_50,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
+  coord_flip()
+dev.off()
+```
+
+
+male 30
+```{r}
+#dotplot of male_target_ImmuneGenes_30
+male_target_ImmuneGenes_30_dotplot <- DotPlot(ALL_HEAD_57k3, features = male_target_ImmuneGenes_30,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()
+
+#export dotplot of male_target_ImmuneGenes_30
+pdf("./results/Dotplot/male_target_ImmuneGenes_30_dotplot.pdf",
+    width = 25,
+    height = 6)
+male_target_ImmuneGenes_30_dotplot
+dev.off()
+
+# Make another dot plot that only includes annotated clusters
+pdf("./results/Dotplot/male_target_ImmuneGenes_30_dotplot_annotated.pdf",
+    width = 15,
+    height = 5)
+DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = male_target_ImmuneGenes_30,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
+  coord_flip()
+dev.off()
+```
+
+WB IMs
+```{r}
 #dotplot of III_Marker_Genes
 III_Marker_Genes_dotplot <- DotPlot(ALL_HEAD_57k3, features = III_Marker_Genes,group.by = "annotation")+
     theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
   coord_flip()
 
 #export dotplot of III_Marker_Genes
-pdf("./results/Dotplot/III_Marker_Genes_dotplot.pdf",
+pdf("./results/Dotplot/WB_IMs_dotplot.pdf",
     width = 25,
     height = 6)
 III_Marker_Genes_dotplot
 dev.off()
 
 # Make another dot plot that only includes annotated clusters
-pdf("./results/Dotplot/III_Marker_Genes_dotplot_annotated.pdf",
+pdf("./results/Dotplot/WB_IMs_dotplot_annotated.pdf",
     width = 15,
     height = 5)
 DotPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters), features = III_Marker_Genes,group.by = "annotation")+
@@ -745,50 +827,50 @@ save F1 barplot in a batch
 ```{r}
 #try saving in a batch (loop)
 
-#female_target_ImmuneGenes day 30
-for (i in 1:length(female_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day30.pdf"),width = 9,height = 6)
+#female_target_ImmuneGenes_50 day 30
+for (i in 1:length(female_target_ImmuneGenes_50)) {
+  pdf(paste0("./results/Barplot/female_target_ImmuneGenes_50/Barplot_DGRP551_female_",female_target_ImmuneGenes_50[i],"_day30.pdf"),width = 9,height = 6)
 plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
                    STRAIN = "DGRP-551",
                    SEX = "female",
-                   GENE =female_target_ImmuneGenes[i],
+                   GENE =female_target_ImmuneGenes_50[i],
                    AGE1 ="30",
                    TOP_N_CLUSTERS = 12)
 dev.off()
 }
 
-#female_target_ImmuneGenes day 50
-for (i in 1:length(female_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/female_target_ImmuneGenes/Barplot_DGRP551_female_",female_target_ImmuneGenes[i],"_day50.pdf"),width = 9,height = 6)
+#female_target_ImmuneGenes_50 day 50
+for (i in 1:length(female_target_ImmuneGenes_50)) {
+  pdf(paste0("./results/Barplot/female_target_ImmuneGenes_50/Barplot_DGRP551_female_",female_target_ImmuneGenes_50[i],"_day50.pdf"),width = 9,height = 6)
 plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
                    STRAIN = "DGRP-551",
                    SEX = "female",
-                   GENE =female_target_ImmuneGenes[i],
+                   GENE =female_target_ImmuneGenes_50[i],
                    AGE1 ="50",
                    TOP_N_CLUSTERS = 12)
 dev.off()
 }
 
 
-#male_target_ImmuneGenes day 30
-for (i in 1:length(male_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day30.pdf"),width = 9,height = 6)
+#male_target_ImmuneGenes_50 day 30
+for (i in 1:length(male_target_ImmuneGenes_50)) {
+  pdf(paste0("./results/Barplot/male_target_ImmuneGenes_50/Barplot_DGRP551_male_",male_target_ImmuneGenes_50[i],"_day30.pdf"),width = 9,height = 6)
 plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
                    STRAIN = "DGRP-551",
                    SEX = "male",
-                   GENE =male_target_ImmuneGenes[i],
+                   GENE =male_target_ImmuneGenes_50[i],
                    AGE1 ="30",
                    TOP_N_CLUSTERS = 12)
 dev.off()
 }
 
-#male_target_ImmuneGenes day 50
-for (i in 1:length(male_target_ImmuneGenes)) {
-  pdf(paste0("./results/Barplot/male_target_ImmuneGenes/Barplot_DGRP551_male_",male_target_ImmuneGenes[i],"_day50.pdf"),width = 9,height = 6)
+#male_target_ImmuneGenes_50 day 50
+for (i in 1:length(male_target_ImmuneGenes_50)) {
+  pdf(paste0("./results/Barplot/male_target_ImmuneGenes_50/Barplot_DGRP551_male_",male_target_ImmuneGenes_50[i],"_day50.pdf"),width = 9,height = 6)
 plot_log2bars_Ages (DATA =TPM_HEAD_Genotype_Sex_Age_Cluster,
                    STRAIN = "DGRP-551",
                    SEX = "male",
-                   GENE =male_target_ImmuneGenes[i],
+                   GENE =male_target_ImmuneGenes_50[i],
                    AGE1 ="50",
                    TOP_N_CLUSTERS = 12)
 dev.off()
@@ -940,30 +1022,30 @@ plot_gene_expression_before_after_2ages(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 Generate F2 for DGRP551 female/male target_ImmuneGenes and IMs
 ```{r}
-#female_target_ImmuneGenes
-for (i in 1:length(female_target_ImmuneGenes)) {
+#female_target_ImmuneGenes_50
+for (i in 1:length(female_target_ImmuneGenes_50)) {
   tmp <- plot_gene_expression_before_after_2ages(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                                  gene = female_target_ImmuneGenes[i],
+                                  gene = female_target_ImmuneGenes_50[i],
                                   genotype = "DGRP-551",
                                   sex = "female", 
                                   young_age = 3, 
                                   old_age = 50,
                                   TOP_N_CLUSTERS = 7
                                   );
-  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_target_ImmuneGenes_plot/Expression_change_DGRP-551_female_day3_day50_",female_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_target_ImmuneGenes_50_plot/Expression_change_DGRP-551_female_day3_day50_",female_target_ImmuneGenes_50[i],".pdf"),width = 9,height = 6)
 }
 
-#male_target_ImmuneGenes
-for (i in 1:length(male_target_ImmuneGenes)) {
+#male_target_ImmuneGenes_50
+for (i in 1:length(male_target_ImmuneGenes_50)) {
   tmp <- plot_gene_expression_before_after_2ages(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                                  gene = male_target_ImmuneGenes[i],
+                                  gene = male_target_ImmuneGenes_50[i],
                                   genotype = "DGRP-551",
                                   sex = "male", 
                                   young_age = 3, 
                                   old_age = 50,
                                   TOP_N_CLUSTERS = 7
                                   );
-  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_target_ImmuneGenes_plot/Expression_change_DGRP-551_male_day3_day50_",male_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_target_ImmuneGenes_50_plot/Expression_change_DGRP-551_male_day3_day50_",male_target_ImmuneGenes_50[i],".pdf"),width = 9,height = 6)
 }
 
 #female IMs
@@ -1142,10 +1224,10 @@ plot_gene_expression_before_after_4ages(
 
 Generate F3 for DGRP551 female/male target_ImmuneGenes and IMs
 ```{r}
-#female_target_ImmuneGenes
-for (i in 1:length(female_target_ImmuneGenes)) {
+#female_target_ImmuneGenes_50
+for (i in 1:length(female_target_ImmuneGenes_50)) {
   tmp <- plot_gene_expression_before_after_4ages(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                                  gene = female_target_ImmuneGenes[i],
+                                  gene = female_target_ImmuneGenes_50[i],
                                   genotype = "DGRP-551",
                                   sex = "female",
                                   first_age = 3,
@@ -1155,13 +1237,13 @@ for (i in 1:length(female_target_ImmuneGenes)) {
                                   TOP_N_CLUSTERS = 7,
                                   cell_number_df = cell_number_Genotype_Sex_Age_Cluster
                                   );
-  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_target_ImmuneGenes_plot/Expression_change_DGRP-551_female_day3_day_15_day30_day50_",female_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/female_target_ImmuneGenes_50_plot/Expression_change_DGRP-551_female_day3_day_15_day30_day50_",female_target_ImmuneGenes_50[i],".pdf"),width = 9,height = 6)
 }
 
-#male_target_ImmuneGenes
-for (i in 1:length(male_target_ImmuneGenes)) {
+#male_target_ImmuneGenes_50
+for (i in 1:length(male_target_ImmuneGenes_50)) {
   tmp <- plot_gene_expression_before_after_4ages(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                                  gene = male_target_ImmuneGenes[i],
+                                  gene = male_target_ImmuneGenes_50[i],
                                   genotype = "DGRP-551",
                                   sex = "male", 
                                   first_age = 3,
@@ -1171,7 +1253,7 @@ for (i in 1:length(male_target_ImmuneGenes)) {
                                   TOP_N_CLUSTERS = 7,
                                   cell_number_df = cell_number_Genotype_Sex_Age_Cluster
                                   );
-  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_target_ImmuneGenes_plot/Expression_change_DGRP-551_male_day3_day_15_day30_day50_",male_target_ImmuneGenes[i],".pdf"),width = 9,height = 6)
+  ggsave(tmp,device = "pdf",file= paste0("./results/Before_and_after_plot/male_target_ImmuneGenes_50_plot/Expression_change_DGRP-551_male_day3_day_15_day30_day50_",male_target_ImmuneGenes_50[i],".pdf"),width = 9,height = 6)
 }
 
 #female IMs
@@ -1261,7 +1343,7 @@ plot_gene_expression_heatmap <- function(df, genes, genotype, sex, age) {
     row_names_side = "left",
     column_names_side = "bottom",
     cluster_rows = F, # similarity clusters on rows (genes)
-    cluster_columns = T, # similarity clusters on columns (clusters); enabled
+    cluster_columns = F, # similarity clusters on columns (clusters); enabled
     show_row_names = TRUE,
     show_column_names = TRUE,
     row_title = "Genes",
@@ -1282,43 +1364,243 @@ plot_gene_expression_heatmap <- function(df, genes, genotype, sex, age) {
 
 # DGRP-551
 plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                             genes=female_target_ImmuneGenes,
+                             genes=female_target_ImmuneGenes_50,
                              genotype="DGRP-551",
                              sex="female", 
-                             age="30")
+                             age="3")
 
 plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                             genes=female_target_ImmuneGenes,
+                             genes=female_target_ImmuneGenes_50,
                              genotype="DGRP-551",
                              sex="female", 
                              age="50")
 
-plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                             genes=male_target_ImmuneGenes,
-                             genotype="DGRP-551",
-                             sex="male", 
-                             age="30")
-
-plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                             genes=male_target_ImmuneGenes,
-                             genotype="DGRP-551",
-                             sex="male", 
-                             age="50")
-# w1118
-plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                             genes=female_target_ImmuneGenes,
-                             genotype="w1118",
-                             sex="female", 
-                             age="30")
-
-plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
-                             genes=male_target_ImmuneGenes,
-                             genotype="w1118",
-                             sex="male", 
-                             age="30")
+# plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+#                              genes=male_target_ImmuneGenes_50,
+#                              genotype="DGRP-551",
+#                              sex="male", 
+#                              age="30")
+# 
+# plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+#                              genes=male_target_ImmuneGenes_50,
+#                              genotype="DGRP-551",
+#                              sex="male", 
+#                              age="50")
+# # w1118
+# plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+#                              genes=female_target_ImmuneGenes_50,
+#                              genotype="w1118",
+#                              sex="female", 
+#                              age="30")
+# 
+# plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+#                              genes=male_target_ImmuneGenes_50,
+#                              genotype="w1118",
+#                              sex="male", 
+#                              age="30")
 ```
 
 
+
+
+# plot log2((old expression + 1) / (young expression + 1)) for common clusters
+
+```{r}
+
+plot_age_ratio_heatmap <- function(df, genes, genotype, sex, young_age, old_age) {
+  library(ComplexHeatmap)
+library(circlize)
+library(viridis)
+  # Generate column patterns for both ages
+  young_pattern <- paste0(genotype, "_", sex, "_", young_age, "_")
+  old_pattern <- paste0(genotype, "_", sex, "_", old_age, "_")
+  
+  # Extract relevant column names
+  young_cols <- grep(young_pattern, colnames(df), value = TRUE)
+  old_cols <- grep(old_pattern, colnames(df), value = TRUE)
+  
+  # Extract cluster names
+  young_clusters <- sub(paste0(".*_", young_age, "_"), "", young_cols)
+  old_clusters <- sub(paste0(".*_", old_age, "_"), "", old_cols)
+  
+  # Exclude unannotated clusters (numeric cluster names)
+  valid_young <- !grepl("^[0-9]+$", young_clusters)
+  valid_old <- !grepl("^[0-9]+$", old_clusters)
+  
+  young_cols <- young_cols[valid_young]
+  old_cols <- old_cols[valid_old]
+  
+  young_clusters <- young_clusters[valid_young]
+  old_clusters <- old_clusters[valid_old]
+  
+  # Find common clusters
+  common_clusters <- intersect(young_clusters, old_clusters)
+  
+  if (length(common_clusters) == 0) {
+    stop("No common annotated clusters found between the two ages.")
+  }
+  
+  # Subset data for common clusters
+  young_filtered <- df[rownames(df) %in% genes, young_cols[young_clusters %in% common_clusters], drop = FALSE]
+  old_filtered <- df[rownames(df) %in% genes, old_cols[old_clusters %in% common_clusters], drop = FALSE]
+  
+  # Rename columns to cluster names for alignment
+  colnames(young_filtered) <- common_clusters
+  colnames(old_filtered) <- common_clusters
+  
+  # Compute log2 ratio (log2(old + 1) / log2(young + 1))
+  log2_ratio <- log2((old_filtered + 1) / (young_filtered + 1))
+  
+  # Define color scale (matching your figure: blue < white < yellow)
+  #col_fun <- colorRamp2(c(-15, 0, 15), c("violetred","#008080", "#FFD700"))
+  col_fun <- colorRamp2(c(-5, 0, 5), c("navy", "aquamarine4", "darkorange"))
+  
+  
+  # Plot heatmap
+  Heatmap(as.matrix(log2_ratio),
+          name = "log2 Fold Change",
+          col = col_fun,
+          cluster_rows = FALSE,
+          cluster_columns = T,
+          show_row_names = TRUE,  # Genes on the left
+          show_column_names = TRUE, # Cell populations
+          column_names_rot = 90,  # Vertical column names
+          row_names_side = "left",
+          border = TRUE, # Adds grid lines
+          column_title = paste0("Log2 Fold Change (", old_age, "/", young_age, ")"," of ",genotype," ", sex),
+          row_title = "Genes",
+          column_names_gp = gpar(fontsize = 10),  # Adjust font size
+          heatmap_legend_param = list(title = "Log2 FC"),
+          cell_fun = function(j, i, x, y, width, height, fill) {
+      grid.rect(x, y, width, height, gp = gpar(col = "black", lwd = 1))  # Add black border
+      grid.rect(x, y, width, height, gp = gpar(fill = fill, col = NA))    # Preserve fill color
+    }
+  )
+}
+
+
+# Example
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=female_target_ImmuneGenes_50,
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="50")
+
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=female_target_ImmuneGenes_30,
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="30")
+
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=male_target_ImmuneGenes_50,
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="50")
+
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=male_target_ImmuneGenes_30,
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="30")
+#######
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=III_Marker_Genes,
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="50")
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=III_Marker_Genes,
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="50")
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=III_Marker_Genes,
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="30")
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=III_Marker_Genes,
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="30")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+Day 50 Venn
+```{r}
+library(ggVennDiagram)
+
+# Create a list for the Venn diagram
+Venn_gene_lists <- list(
+  'Whole Body IMs' = III_Marker_Genes,
+  'Female Brain IMs' = female_target_ImmuneGenes_50,
+  'Male Brain IMs' = male_target_ImmuneGenes_50
+)
+
+
+# Plot Venn diagram with adjusted margins
+pdf("./results/Venn/Venn_IMs_WB_F_M_50.pdf",
+    width = 9,
+    height = 8)
+ggVennDiagram(Venn_gene_lists, label_alpha = 0) + 
+  scale_fill_gradient(low = "lightblue", high = "darkblue") +  # Fill gradient
+  labs(title = "Venn Diagram of Gene Lists") +  # Add title
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),  # Center title
+    plot.margin = margin(20, 50, 20, 50),  # Increase margins (top, right, bottom, left)
+    text = element_text(size = 14)  # Increase overall text size
+  ) +
+  coord_cartesian(clip = "off")  # Prevent text from being cut off
+dev.off()
+```
+
+
+Day 30 Venn
+```{r}
+library(ggVennDiagram)
+
+# Create a list for the Venn diagram
+Venn_gene_lists <- list(
+  'Whole Body IMs' = III_Marker_Genes,
+  'Female Brain IMs' = female_target_ImmuneGenes_30,
+  'Male Brain IMs' = male_target_ImmuneGenes_30
+)
+
+
+# Plot Venn diagram with adjusted margins
+pdf("./results/Venn/Venn_IMs_WB_F_M_30.pdf",
+    width = 9,
+    height = 8)
+ggVennDiagram(Venn_gene_lists, label_alpha = 0) + 
+  scale_fill_gradient(low = "lightblue", high = "darkblue") +  # Fill gradient
+  labs(title = "Venn Diagram of Gene Lists") +  # Add title
+  theme(
+    plot.title = element_text(size = 18, face = "bold", hjust = 0.5),  # Center title
+    plot.margin = margin(20, 50, 20, 50),  # Increase margins (top, right, bottom, left)
+    text = element_text(size = 14)  # Increase overall text size
+  ) +
+  coord_cartesian(clip = "off")  # Prevent text from being cut off
+dev.off()
+```
 
 
 save work image
