@@ -281,6 +281,7 @@ write.xlsx(res1[res1$'sig'=='down',],paste0("./processed_data/DESeq_result/",Fil
 
 
 #This function is dependent on DO_DEseq function
+# This second function selects columns needed for DESeq and then runs Do_DESeq
 Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_AGE){
   #First remove genes containing just zero;
   #PSEUDO_INPUT <- PSEUDO_INPUT[rowSums(PSEUDO_INPUT)>1,];
@@ -293,8 +294,8 @@ Run_DESeq2_Pseudo_HEAD_Cells <- function(PSEUDO_INPUT,STRAIN,SEX,OLD_AGE,YOUNG_A
   index_old <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,3]==OLD_AGE);
   index_young <- which(str_split(colnames(PSEUDO_INPUT),pattern = "_",4,simplify =T)[,3]==YOUNG_AGE);
   #Obtain the # of columns in each condition
-  N_OLD <- length(index_old);
-  N_YOUNG <- length(index_young);
+  N_OLD <- length(index_old); # number of replicate in old age
+  N_YOUNG <- length(index_young); # number of replicate in young age
   
   #Run DO_DEseq function to generate results to ./DESeq_result dir
   Do_DEseq(Counts_matrix=cbind(PSEUDO_INPUT[,index_old],PSEUDO_INPUT[,index_young]), #select the columns in readcount matrix and select treatment sample first then control samples
@@ -365,7 +366,6 @@ Run_DESeq2_Pseudo_HEAD_Cells(
 
 
 
-
 Import DESeq result of DGRP551 female and male
 ```{r}
 DESeq_DGRP551_female_50_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGRP-551_female_50_vs_3.xlsx",
@@ -422,7 +422,7 @@ write.xlsx(subset(DESeq_DGRP551_female_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_
 
 write.xlsx(subset(DESeq_DGRP551_male_30_vs_3,sig=="up"&rownames(DESeq_DGRP551_male_30_vs_3)%in%GO_ImmuneDef$V1),
            rowNames=T,
-           "./processed_data/ranked_ImmuneGene_List/DGRP551_male_30_vs_3_ImmuneGene_List.xlsx")
+           "./processed_data/ranked_ImmuneGene_List/DGRP551_male_30_vs_3_ImmuneGene_List.xlsx") 
 ```
 
 
@@ -618,7 +618,7 @@ Pseudo_HEAD_Genotype_Sex_Age_Cluster <- as.data.frame(
   )
 
 dim(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
-
+#[1] 17473  2845
 #export the count file
 
 write.xlsx(Pseudo_HEAD_Genotype_Sex_Age_Cluster,"./large_file/Pseudo_HEAD_Genotype_Sex_Age_Cluster.xlsx",rowNames=T)
@@ -1410,7 +1410,7 @@ plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 plot_age_ratio_heatmap <- function(df, genes, genotype, sex, young_age, old_age) {
   library(ComplexHeatmap)
 library(circlize)
-library(viridis)
+library(viridis) # heatmap color
   # Generate column patterns for both ages
   young_pattern <- paste0(genotype, "_", sex, "_", young_age, "_")
   old_pattern <- paste0(genotype, "_", sex, "_", old_age, "_")
@@ -1545,7 +1545,7 @@ plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 
 
-Day 50 Venn
+Day 50 Venn P0.05
 ```{r}
 library(ggVennDiagram)
 
@@ -1574,7 +1574,7 @@ dev.off()
 ```
 
 
-Day 30 Venn
+Day 30 Venn P0.05
 ```{r}
 library(ggVennDiagram)
 
