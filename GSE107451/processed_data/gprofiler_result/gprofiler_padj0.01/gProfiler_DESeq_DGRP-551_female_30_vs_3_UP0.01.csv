@@ -1,0 +1,4 @@
+"source","term_name","term_id","highlighted","adjusted_p_value","negative_log10_of_adjusted_p_value","term_size","query_size","intersection_size","effective_domain_size","intersections"
+"GO:MF","G protein-coupled photoreceptor activity","GO:0008020","true","0.00373627521353267","2.4275611411902243","8","12","2","11954","RH2,RH4"
+"GO:MF","photoreceptor activity","GO:0009881","false","0.00878730234587327","2.0561444305140215","12","12","2","11954","RH2,RH4"
+"HP","Muscle fiber intranuclear inclusion bodies","HP:0100304","false","0.049928751671389146","1.3016492921264367","1","1","1","3327","PABP2"

@@ -1,0 +1,4 @@
+"source","term_name","term_id","highlighted","adjusted_p_value","negative_log10_of_adjusted_p_value","term_size","query_size","intersection_size","effective_domain_size","intersections"
+"GO:CC","extracellular region","GO:0005576","true","0.0006448836754307099","3.190518616643206","1206","36","14","12142","ITP,TSF1,DRO,CG15201,ARC1,DPTA,ATTC,A10,ANA,IDGF3,MMP1,SOD3,OBP99C,CG6218"
+"GO:CC","plasma membrane","GO:0005886","true","0.01389043966961414","1.857284007461429","1794","36","15","12142","TSF1,RH2,CG32521,TSP42ED,CG44325,N,TWIT,MMP1,SOD3,CG11426,CG9507,CG31676,PICOT,LIST,NRV2"
+"MIRNA","dme-miR-124-3p","MIRNA:dme-miR-124-3p","false","0.04960317460317443","1.3044905277734893","1","1","1","84","ANA"
