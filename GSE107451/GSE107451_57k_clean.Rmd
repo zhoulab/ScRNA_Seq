@@ -479,7 +479,7 @@ Make_dotplot <- function(SOBJ, GENELIST,FILE_TITLE) {
   #all clusters
   Var_dotplot <- DotPlot(SOBJ, features = GENELIST,group.by = "annotation")+
     theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
-  coord_flip();
+  coord_flip()+ scale_x_discrete(limits = rev(GENELIST))  # Force the order of genes;
   
   #export dotplot of female_target_ImmuneGenes_50
 pdf(paste0("./results/Dotplot/",FILE_TITLE,".pdf"),
@@ -491,7 +491,7 @@ dev.off()
 # Make another dot plot that only includes annotated clusters
 Var_dotplot_annotated <- DotPlot(subset(SOBJ, idents = annotated_clusters), features = GENELIST,group.by = "annotation")+
     theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
-  coord_flip()
+  coord_flip()+ scale_x_discrete(limits = rev(GENELIST))  # Force the order of genes
 
 # save annotated plot
 pdf(paste0("./results/Dotplot/",FILE_TITLE,"_annotated.pdf"),
@@ -545,6 +545,16 @@ Make_dotplot(SOBJ = ALL_HEAD_57k3,
              FILE_TITLE = "WB_IMs_dotplot"
              )
 ```
+
+dotplot of female_target_ImmuneGenes_50 and male_target_ImmuneGenes_50
+```{r}
+Make_dotplot(SOBJ = ALL_HEAD_57k3, 
+             GENELIST = unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+             FILE_TITLE = "female_AND_male_target_ImmuneGenes_50_dotplot"
+             )
+```
+
+
 
 # generate tSNE only for annotated clusters
 ```{r}
