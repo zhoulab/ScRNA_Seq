@@ -1507,6 +1507,40 @@ plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 
 
+# venn grey and show gene names in sets of intersection
+```{r}
+# Load required packages
+library(ggplot2)
+library(ggvenn)
+
+# Define three gene lists
+gene_list1 <- III_Marker_Genes
+gene_list2 <- female_target_ImmuneGenes_50
+gene_list3 <- male_target_ImmuneGenes_50
+
+# Create a named list of gene sets
+gene_sets <- list(
+  "WB IMs" = gene_list1,
+  "Female Brain IMs Day 50" = gene_list2,
+  "Male Brain IMs Day 50" = gene_list3
+)
+
+# Compute intersections
+intersect_12 <- intersect(gene_list1, gene_list2)
+intersect_13 <- intersect(gene_list1, gene_list3)
+intersect_23 <- intersect(gene_list2, gene_list3)
+intersect_123 <- Reduce(intersect, list(gene_list1, gene_list2, gene_list3))
+
+# Generate Venn Diagram
+p <- ggvenn(gene_sets, fill_color = c("grey", "grey", "grey"), stroke_size = 0.5, set_name_size = 4,fill_alpha = 0.5,text_size = 3)
+
+# Add annotations for intersecting genes
+p + 
+  annotate("text", x = 0, y = 0.5, label = paste(setdiff(intersect_12, intersect_123), collapse = ", "), size = 3) +  # Intersection of List1 and List2 excluding intersect_123
+  annotate("text", x = 0, y = -1, label = paste(setdiff(gene_list3, intersect_123), collapse = ", "), size = 3) +   # gene_list3 excluding intersect_123
+  annotate("text", x = 0, y = 0, label = paste(intersect_123, collapse = ", "), size = 3) +    # Intersection of all three lists
+  annotate("text", x = 0.8, y = 0.4, label = paste(setdiff(gene_list2, intersect_12), collapse = ", "), size = 3)     # gene_list3 excluding intersect_12
+```
 
 
 
@@ -1515,7 +1549,8 @@ plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 
 
-Day 50 Venn P0.05
+
+Day 50 Venn Padj0.01
 ```{r}
 library(ggVennDiagram)
 
@@ -1544,7 +1579,7 @@ dev.off()
 ```
 
 
-Day 30 Venn P0.05
+Day 30 Venn Padj0.01
 ```{r}
 library(ggVennDiagram)
 
