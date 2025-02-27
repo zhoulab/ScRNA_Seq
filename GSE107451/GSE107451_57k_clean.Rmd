@@ -28,7 +28,7 @@ output: NA
 ## Pseudo_HEAD_Cells: aggregated count split by genotype, sex, age, and replicate. DEseq was performed on the basis of this aggregated count matrix to compare with bulk RNAseq data.
 
 ## Pseudo_HEAD_Genotype_Sex_Age_Cluster: aggregated count split by genotype, sex, age, and, cell type.
-## TPM_HEAD_Genotype_Sex_Age_Cluster: aggregated count (Pseudo_HEAD_Genotype_Sex_Age_Cluster) normalized to TPM. Used for visualization with F1, F2, F3, and F4.
+## TPM_HEAD_Genotype_Sex_Age_Cluster: aggregated count (Pseudo_HEAD_Genotype_Sex_Age_Cluster) normalized to TPM. Used for visualization with F1, F2, F3, F4, and F5.
 
 
 set working directory and library package
@@ -58,9 +58,9 @@ load("GSE107451_head_ALL_57k_clean_padj0.01.RData")
 
 Import data and create Seurat object
 ```{r}
-
 #import barcode, matrix, and feature files obtained by cellranger under folder GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv
 ALL_HEAD_57k <- Seurat::Read10X("./raw_data/GSE107451_DGRP-551_w1118_WholeBrain_57k_0d_1d_3d_6d_9d_15d_30d_50d_10X_DGEM_MEX.mtx.tsv")
+
 #create seurat object, setting minimum standard (57k is filtered dataset by author, no need to filter)
 ALL_HEAD_57k <- CreateSeuratObject(counts = ALL_HEAD_57k,
                                project = "ALL_HEAD_57k_GSE107451", 
@@ -87,8 +87,7 @@ View(ALL_HEAD_57k@meta.data)
 
 Normalization and find clusters under different resolutions
 ```{r}
-###NOTE: Running the standard workflow from normalization, pca, etc.. to tSNE is simply for adding the "reduction" slot in the Seurat OBJ
-
+###NOTE: Running the standard workflow from normalization, pca, etc.. to tSNE is simply for adding the "reduction" slot in the Seurat OBJ; The authors' annotations will be used in this analysis
 ALL_HEAD_57k2 <- NormalizeData(ALL_HEAD_57k)
 ALL_HEAD_57k2 <- FindVariableFeatures(ALL_HEAD_57k2)
 ALL_HEAD_57k2 <- ScaleData(ALL_HEAD_57k2)
@@ -107,18 +106,18 @@ Run tSNE reductons
 ALL_HEAD_57k3 <- RunTSNE(ALL_HEAD_57k2, dims = 1:20, reduction = "pca", reduction.name = "tSNE_ALL_HEAD_57k_Author_cluster",verbose=T,perplexity=30)
 
  
-#change tSNE coordinates to authors' values (so the topology looks the same)
+#change tSNE coordinates to authors' values in the annotation (so the topology looks the same)
 table(rownames(ALL_HEAD_57k3@meta.data)%in%rownames(ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings))
 # TRUE 
 # 56902 
 ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings[,1] <- ALL_HEAD_57k3@meta.data$seurat_tsne1
 ALL_HEAD_57k3@reductions[["tSNE_ALL_HEAD_57k_Author_cluster"]]@cell.embeddings[,2] <- ALL_HEAD_57k3@meta.data$seurat_tsne2
 
-#In seuratV5, joinlayers is needed to prevent error when running FindallMarkers
+#In seuratV5, joinlayers is needed to prevent error when running FindallMarkers because data slot location has changed since V3
 ALL_HEAD_57k3 <- JoinLayers(ALL_HEAD_57k3)
 ```
 
-Create a Gene List of inflammaging markers and corresponding feature plots
+Create a Gene List of lab's Bulk inflammaging markers (IMs) and corresponding feature plots
 ```{r}
 #creating inflammaging marker gene list (lab's Bulk IMs)
 III_Marker_Genes <- c("SPH93",
@@ -134,57 +133,6 @@ III_Marker_Genes <- c("SPH93",
                       "IM18",
                       "edin")
 ```
-
-objective 1.2 which cells in the brain express the IMs? Is it the hemocytes?
-find all markers, lowest standard; generated statistical results
-```{r}
-#change active idents in ALL_HEAD_57k3
-Idents(ALL_HEAD_57k3) <- ALL_HEAD_57k3@meta.data$annotation
-
-#find marker genes with the lowest standard (so it will definitely include III markers)
-lowest_standard_markers <-
-  FindAllMarkers(ALL_HEAD_57k3,
-                 test.use = 'wilcox',
-                 only.pos = F,
-                 min.pct = 0,
-                 logfc.threshold = 0,
-                 group.by ="annotation")
-
-```
-
-
-Export FindAllMarkers result For IMs, female_target_ImmuneGenes_50, and male_target_ImmuneGenes_50
-Note: female_target_ImmuneGenes_50 and male_target_ImmuneGenes_50 are generated in latter section when DEseq was performed on aggregated count to compare to Bulk RNAseq data.
-```{r}
-# IMs
-openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%III_Marker_Genes,],
-                     "./processed_data/lowest_standard_markers_III_markers.xlsx",
-                     rowNames=T)
-# female_target_ImmuneGenes_50
-openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%female_target_ImmuneGenes_50,],
-                     "./processed_data/lowest_standard_markers_female_target_ImmuneGenes_50.xlsx",
-                     rowNames=T)
-# male_target_ImmuneGenes_50
-openxlsx::write.xlsx(lowest_standard_markers[lowest_standard_markers$gene%in%male_target_ImmuneGenes_50,],
-                     "./processed_data/lowest_standard_markers_male_target_ImmuneGenes_50.xlsx",
-                     rowNames=T)
-
-```
-
-
-Import the FindAllMarkers results for IMs, female_target_ImmuneGenes_50, and male_target_ImmuneGenes_50
-```{r}
-lowest_standard_markers_III_markers <- read.xlsx("./processed_data/lowest_standard_markers_III_markers.xlsx",
-                                                 rowNames = T,
-                                                 colNames = T)
-lowest_standard_markers_female_target_ImmuneGenes_50 <- read.xlsx("./processed_data/lowest_standard_markers_female_target_ImmuneGenes_50.xlsx",
-                                                 rowNames = T,
-                                                 colNames = T)
-lowest_standard_markers_male_target_ImmuneGenes_50 <- read.xlsx("./processed_data/lowest_standard_markers_male_target_ImmuneGenes_50.xlsx",
-                                                 rowNames = T,
-                                                 colNames = T)
-```
-
 
 Objective 1.1&1.3 to compare this HEAD57k data with lab's Bulk_RNAseq data on a holistic level. Which increased or decreased
 Generate pseudobulk dataframe (rownames genes, colnames cells), split by genotype, sex, age, and replicate.
@@ -378,6 +326,84 @@ DESeq_DGRP551_male_30_vs_3 <- read.xlsx("./processed_data/DESeq_result/DESeq_DGR
                                                   rowNames = T)
 ```
 
+Plot volcano plot of DESeq results
+```{r}
+
+plot_volcano <- function(res, log2FC_cutoff = 1, pval_cutoff = 0.05, 
+                         xlim_range = c(-5, 5), ylim_range = c(0,100), label_top_n = 10, plot_title = "Volcano Plot") {
+  library(ggplot2)
+library(dplyr)
+library(ggrepel)
+  # Check if required columns exist
+  required_cols <- c("log2FoldChange", "pvalue", "padj")
+  missing_cols <- setdiff(required_cols, colnames(res))
+  if (length(missing_cols) > 0) {
+    stop(paste("Dataframe is missing required columns:", paste(missing_cols, collapse = ", ")))
+  }
+
+  # If 'Gene' column is missing, try using row names
+  if (!"Gene" %in% colnames(res)) {
+    if (!is.null(rownames(res))) {
+      res$Gene <- rownames(res)
+    } else {
+      stop("No gene symbols found. Ensure gene names are in row names or a 'Gene' column.")
+    }
+  }
+
+  # Define significance categories
+  res$significance <- "none"
+  res$significance[res$log2FoldChange >= log2FC_cutoff & res$padj < pval_cutoff] <- "up"
+  res$significance[res$log2FoldChange <= -log2FC_cutoff & res$padj < pval_cutoff] <- "down"
+  res$significance <- factor(res$significance, levels = c("none", "up", "down"))
+
+  # Select top DEGs for labeling
+  top_genes <- res %>%
+    filter(padj < pval_cutoff) %>%
+    arrange(padj) %>%
+    head(label_top_n)
+
+  # Generate Volcano Plot
+  ggplot(res, aes(x = log2FoldChange, y = -log10(pvalue), color = significance)) +
+    geom_point(alpha = 1, size = 2) +
+    scale_color_manual(values = c("none" = "grey", "up" = "red", "down" = "blue")) +
+    geom_vline(xintercept = c(-log2FC_cutoff, log2FC_cutoff), linetype = "dashed") +
+    geom_hline(yintercept = -log10(pval_cutoff), linetype = "dashed") +
+    xlim(xlim_range) +
+    ylim(ylim_range) +
+    labs(title = plot_title, x = "Log2 Fold Change", y = "-Log10 P-value") +
+    theme_minimal() +
+    geom_text_repel(data = top_genes, aes(label = Gene), 
+                    size = 4, box.padding = 0.5, point.padding = 0.3, 
+                    segment.color = "black",max.overlaps = Inf,
+                    show.legend = FALSE) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),  # Center title
+    plot.title.position = "plot"  # Ensure it's at the top
+  )
+}
+
+
+#DESeq_DGRP551_female_50_vs_3
+plot_volcano(res=DESeq_DGRP551_female_50_vs_3,
+             log2FC_cutoff = 1,
+             pval_cutoff = 0.01, 
+             xlim_range = c(-12, 12), 
+             ylim_range=c(0,75), 
+             label_top_n = 25, 
+             plot_title = "DESeq_DGRP551_female_50_vs_3"
+             )
+
+#DESeq_DGRP551_male_50_vs_3
+plot_volcano(res=DESeq_DGRP551_male_50_vs_3,
+             log2FC_cutoff = 1,
+             pval_cutoff = 0.01, 
+             xlim_range = c(-8, 12), 
+             ylim_range=c(0,40), 
+             label_top_n = 25, 
+             plot_title = "DESeq_DGRP551_male_50_vs_3"
+             )
+```
+
 
 Objective 5.1 Based on result of 1.1, which immune genes in GO_ImmuneDef.txt are up-regulated DEGs in this scRNA-Seq dataset on a pseudo bulk level? 
 
@@ -458,14 +484,26 @@ male_target_ImmuneGenes_30
 
 Based on findallmarkers result, determine the percentage expression of these immune genes in different clusters. Potential clusters can be identified.
 
-# Find annotated clusters first
+Find annotated clusters first
 ```{r}
-#sort(unique(ALL_HEAD_57k3$annotation))
+sort(unique(ALL_HEAD_57k3$annotation))
 
-# annotated_clusters <- unique(ALL_HEAD_57k3$annotation)[
-#   !grepl("^[0-9]+$", unique(ALL_HEAD_57k3$annotation))
-#   ]
-# sort(annotated_clusters)
+annotated_clusters <- unique(ALL_HEAD_57k3$annotation)[
+   !grepl("^[0-9]+$", unique(ALL_HEAD_57k3$annotation))
+   ]
+sort(annotated_clusters)
+```
+
+generate tSNE only for annotated clusters
+```{r}
+pdf(file = "./results/Dimplot/annotated_clusters_tSNE.pdf",width = 5,height = 5)
+DimPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters),
+        reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
+        group.by = "annotation",
+        label = T,
+        label.size = 2,
+        repel = TRUE)+ NoLegend()
+dev.off()
 ```
 
 
@@ -555,19 +593,95 @@ Make_dotplot(SOBJ = ALL_HEAD_57k3,
 ```
 
 
-
-# generate tSNE only for annotated clusters
+dotplot of female_target_ImmuneGenes_50 and male_target_ImmuneGenes_50 in female DGRP-551 and male DGRP-551 (Combined gene lists in female DGRP-551 and male DGRP-551)
 ```{r}
-pdf(file = "./results/Dimplot/annotated_clusters_tSNE.pdf",width = 5,height = 5)
-DimPlot(subset(ALL_HEAD_57k3, idents = annotated_clusters),
-        reduction = "tSNE_ALL_HEAD_57k_Author_cluster",
-        group.by = "annotation",
-        label = T,
-        label.size = 2,
-        repel = TRUE)+ NoLegend()
-dev.off()
+subset(ALL_HEAD_57k3,sex=="female"&Genotype=="DGRP-551")
+subset(ALL_HEAD_57k3,sex=="male"&Genotype=="DGRP-551")
+
+
+
+Make_dotplot(SOBJ = subset(ALL_HEAD_57k3,sex=="female"&Genotype=="DGRP-551"),
+             GENELIST = unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+             FILE_TITLE = "female_AND_male_IMs_50_in_DGRP-551_female_dotplot"
+             )
+
+Make_dotplot(SOBJ = subset(ALL_HEAD_57k3,sex=="male"&Genotype=="DGRP-551"),
+             GENELIST = unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+             FILE_TITLE = "female_AND_male_IMs_50_in_DGRP-551_male_dotplot"
+             )
 ```
 
+dot plot that include only specific clusters of brain IMs
+```{r}
+Dotplot_IM_specific <- function(SOBJ, GENELIST,FILE_TITLE, CELLTYPE) {
+  Idents(SOBJ) <- SOBJ$annotation;
+  #all clusters
+  Var_dotplot <- DotPlot(SOBJ, features = GENELIST,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 12), legend.text = element_text(size = 12), legend.title = element_text(size = 12))+
+  coord_flip()+ scale_x_discrete(limits = rev(GENELIST))  # Force the order of genes;
+  
+  #export dotplot of female_target_ImmuneGenes_50
+pdf(paste0("./results/Dotplot/",FILE_TITLE,".pdf"),
+    width = 25,
+    height = 6)
+print(Var_dotplot)
+dev.off()
+
+# Make another dot plot that only includes IM-specific celltypes
+Var_dotplot_IM_celltype <- DotPlot(subset(SOBJ, idents = CELLTYPE), features = GENELIST,group.by = "annotation")+
+    theme(axis.text.x = element_text(angle = 90, size = 8), axis.text.y = element_text(size = 8), legend.text = element_text(size = 8), legend.title = element_text(size = 8))+
+  coord_flip()+ scale_x_discrete(limits = rev(GENELIST))  # Force the order of genes
+
+# save IM-specific_celltypes plot
+pdf(paste0("./results/Dotplot/",FILE_TITLE,"_IM-specific_celltypes.pdf"),
+    width = 10,
+    height = 5)
+print(Var_dotplot_IM_celltype)
+dev.off()
+}
+
+
+
+levels(subset(ALL_HEAD_57k3,sex=="female"&Genotype=="DGRP-551"))
+
+# Female_brain_celltype
+Female_brain_celltype <- c("Plasmatocytes", "Proc/Ms", "MBON", "Dopaminergic", "Astrocyte-like", 
+                "PAM", "Tyraminergic", "Pm1/Pm2", "Perineurial_glia", "Photoreceptors", 
+                "T2", "AstA/Nplp1", "L4/L5", "Serotonergic", "Ensheathing_glia", 
+                "Subperineurial_glia", "Cortex_glia", "Tm5ab")
+
+# female DGRP-551
+Dotplot_IM_specific(SOBJ = subset(ALL_HEAD_57k3,sex=="female"&Genotype=="DGRP-551"),
+                    GENELIST = unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+                    FILE_TITLE = "female_AND_male_IMs_50_in_DGRP-551_female_dotplot",
+                    CELLTYPE = Female_brain_celltype
+                    )
+
+
+
+
+
+
+levels(subset(ALL_HEAD_57k3,sex=="male"&Genotype=="DGRP-551"))
+
+# male_brain_celltype
+male_brain_celltype <- c("MBON", "Plasmatocytes", "PAM", "Serotonergic", "Gr43a", 
+                   "Olfactory_projection_neurons", "Subperineurial_glia", "Pm1/Pm2/Pm3", 
+                   "Photoreceptors", "Tm5c", "L4/L5", "Pm1/Pm2", "Mi1", "L2", 
+                   "adPN/C15&kn", "Astrocyte-like", "G-KC", "Perineurial_glia", 
+                   "TmY14", "Dm8/Dm11", "Chiasm_glia", "Ensheathing_glia", 
+                   "adPN/kn", "Lawf1", "T2", "Mip", "Octopaminergic", "C3", "Tm9"
+                   )
+
+# male DGRP-551
+Dotplot_IM_specific(SOBJ = subset(ALL_HEAD_57k3,sex=="male"&Genotype=="DGRP-551"),
+                    GENELIST = unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+                    FILE_TITLE = "female_AND_male_IMs_50_in_DGRP-551_male_dotplot",
+                    CELLTYPE = male_brain_celltype
+                    )
+
+
+```
 
 
 
@@ -584,7 +698,7 @@ Pseudo_HEAD_Genotype_Sex_Age_Cluster <- as.data.frame(
 
 dim(Pseudo_HEAD_Genotype_Sex_Age_Cluster)
 #[1] 17473  2845
-#export the count file
+#export the count file to ./large_file (not synced to github)
 
 write.xlsx(Pseudo_HEAD_Genotype_Sex_Age_Cluster,"./large_file/Pseudo_HEAD_Genotype_Sex_Age_Cluster.xlsx",rowNames=T)
 ```
@@ -650,7 +764,7 @@ count2TPM <-
 
 ```
 
-#convert count to TPM; Import necessary files
+Import necessary files for TPM conversion
 ```{r}
 #import gene_SOBJ
 gene_SOBJ <- read.xlsx("./processed_data/transformed_gtf/gene_SOBJ.xlsx",colNames = T)
@@ -1255,7 +1369,7 @@ for (i in 1:length(III_Marker_Genes)) {
 
 ```
 
-# F4 Heat map function (not including unannotated clusters)
+F4 Heat map function (Does not include unannotated clusters)
 ```{r}
 # note: the function currently generates absolute expression for informative purpose; normalization to columns or rows renders heat map cells indistinguishable 
 
@@ -1368,7 +1482,7 @@ plot_gene_expression_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 
 
-# F5  plot log2((old expression + 1) / (young expression + 1)) for common clusters
+F5  plot log2((old expression + 1) / (young expression + 1)) for common clusters
 
 ```{r}
 
@@ -1504,6 +1618,203 @@ plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 #                        old_age="30")
 
 ```
+fold change plot of all brain IMs in female and male DGRP-551
+```{r}
+# all brain IMs in female DGRP-551
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="50")
+
+# all brain IMs in male DGRP-551
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="50")
+```
+fold change day 50/ day 3 TPM plot of all immune genes
+```{r}
+# DGRP-551 female
+pdf("./results/Heatmap/GO_ImmuneDef_day50_day3_DGRP-551_female.pdf",
+    width = 10,
+    height = 70)
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(GO_ImmuneDef$V1),
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="50")
+dev.off()
+
+# DGRP-551 male
+pdf("./results/Heatmap/GO_ImmuneDef_day50_day3_DGRP-551_male.pdf",
+    width = 10,
+    height = 70)
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(GO_ImmuneDef$V1),
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="50")
+dev.off()
+```
+
+F6 plot_selected_clusters_age_ratio_heatmap for specific cell types
+```{r}
+plot_selected_clusters_age_ratio_heatmap <- function(df, genes, genotype, sex, young_age, old_age, clusters_to_plot = NULL) {
+  library(ComplexHeatmap)
+  library(circlize)
+  library(viridis)
+
+  # Generate column patterns for both ages
+  young_pattern <- paste0(genotype, "_", sex, "_", young_age, "_")
+  old_pattern <- paste0(genotype, "_", sex, "_", old_age, "_")
+  
+  # Extract relevant column names
+  young_cols <- grep(young_pattern, colnames(df), value = TRUE)
+  old_cols <- grep(old_pattern, colnames(df), value = TRUE)
+  
+  # Extract cluster names
+  young_clusters <- sub(paste0(".*_", young_age, "_"), "", young_cols)
+  old_clusters <- sub(paste0(".*_", old_age, "_"), "", old_cols)
+  
+  # Exclude unannotated clusters (numeric only names)
+  valid_young <- !grepl("^[0-9]+$", young_clusters)
+  valid_old <- !grepl("^[0-9]+$", old_clusters)
+  young_cols <- young_cols[valid_young]
+  old_cols <- old_cols[valid_old]
+  young_clusters <- young_clusters[valid_young]
+  old_clusters <- old_clusters[valid_old]
+  
+  # Find common annotated clusters
+  common_clusters <- intersect(young_clusters, old_clusters)
+
+  # If user specifies clusters, filter them
+  if (!is.null(clusters_to_plot)) {
+    common_clusters <- intersect(common_clusters, clusters_to_plot)
+  }
+
+  if (length(common_clusters) == 0) {
+    stop("No matching annotated clusters found between the two ages based on your selection.")
+  }
+  
+  # Subset data for common clusters
+  young_filtered <- df[rownames(df) %in% genes, young_cols[young_clusters %in% common_clusters], drop = FALSE]
+  old_filtered <- df[rownames(df) %in% genes, old_cols[old_clusters %in% common_clusters], drop = FALSE]
+
+  # Rename columns to only the cluster names
+  colnames(young_filtered) <- sub(paste0(".*_", young_age, "_"), "", colnames(young_filtered))
+  colnames(old_filtered) <- sub(paste0(".*_", old_age, "_"), "", colnames(old_filtered))
+  
+  # Make sure columns are in the same order
+  common_clusters_sorted <- sort(common_clusters)
+  young_filtered <- young_filtered[, common_clusters_sorted, drop = FALSE]
+  old_filtered <- old_filtered[, common_clusters_sorted, drop = FALSE]
+
+  # Compute log2 ratio
+  log2_ratio <- log2((old_filtered + 1) / (young_filtered + 1))
+  
+  # Define 4-color scale (no white, smooth red-blue)
+  col_fun <- colorRamp2(
+    c(-3, -1, 1, 3),
+    c("darkblue", "lightblue", "lightsalmon", "darkred")
+  )
+
+  # Plot heatmap
+  Heatmap(
+    as.matrix(log2_ratio),
+    name = "log2 Fold Change",
+    col = col_fun,
+    cluster_rows = FALSE,
+    cluster_columns = TRUE,
+    show_row_names = TRUE,
+    show_column_names = TRUE,
+    column_names_rot = 90,
+    row_names_side = "left",
+    border = TRUE,
+    column_title = paste0("Log2 Fold Change (", old_age, "/", young_age, ") of ", genotype, " ", sex),
+    row_title = "Genes",
+    column_names_gp = gpar(fontsize = 10),
+    heatmap_legend_param = list(title = "Log2 FC"),
+    cell_fun = function(j, i, x, y, width, height, fill) {
+      grid.rect(x, y, width, height, gp = gpar(col = "black", lwd = 1))  # Draw grid
+      grid.rect(x, y, width, height, gp = gpar(fill = fill, col = NA))   # Preserve cell color
+    }
+  )
+}
+
+
+
+# example
+
+# all brain IMs in female DGRP-551
+plot_selected_clusters_age_ratio_heatmap(
+  df = TPM_HEAD_Genotype_Sex_Age_Cluster,
+  genes = unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+  genotype = "DGRP-551",
+  sex = "female",
+  young_age = "3",
+  old_age = "50",
+  clusters_to_plot = c("Plasmatocytes","MBON","Astrocyte-like","Dopaminergic")  # input specific clusters; check annotated_clusters for more info
+)
+
+
+# all brain IMs in male DGRP-551
+plot_selected_clusters_age_ratio_heatmap(
+  df = TPM_HEAD_Genotype_Sex_Age_Cluster,
+  genes = unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
+  genotype = "DGRP-551",
+  sex = "male",
+  young_age = "3",
+  old_age = "50",
+  clusters_to_plot = c("Plasmatocytes","MBON","Astrocyte-like","Dopaminergic")  # input specific clusters; check annotated_clusters for more info
+)
+
+
+
+
+```
+
+
+
+venn grey and show gene names in sets of intersection
+```{r}
+# Load required packages
+library(ggplot2)
+library(ggvenn)
+
+# Define three gene lists
+gene_list1 <- III_Marker_Genes
+gene_list2 <- female_target_ImmuneGenes_50
+gene_list3 <- male_target_ImmuneGenes_50
+
+# Create a named list of gene sets
+gene_sets <- list(
+  "WB IMs" = gene_list1,
+  "Female Brain IMs Day 50" = gene_list2,
+  "Male Brain IMs Day 50" = gene_list3
+)
+
+# Compute intersections
+intersect_12 <- intersect(gene_list1, gene_list2)
+intersect_13 <- intersect(gene_list1, gene_list3)
+intersect_23 <- intersect(gene_list2, gene_list3)
+intersect_123 <- Reduce(intersect, list(gene_list1, gene_list2, gene_list3))
+
+# Generate Venn Diagram
+p <- ggvenn(gene_sets, fill_color = c("grey", "grey", "grey"), stroke_size = 0.5, set_name_size = 4,fill_alpha = 0.5,text_size = 5,show_percentage = F)
+
+# Add annotations for intersecting genes
+p + 
+  annotate("text", x = 0, y = 0.5, label = paste(setdiff(intersect_12, intersect_123), collapse = ", "), size = 4) +  # Intersection of List1 and List2 excluding intersect_123
+  annotate("text", x = 0, y = -1, label = paste(setdiff(gene_list3, intersect_123), collapse = ", "), size = 4) +   # gene_list3 excluding intersect_123
+  annotate("text", x = 0, y = 0, label = paste(intersect_123, collapse = ", "), size = 4) +    # Intersection of all three lists
+  annotate("text", x = 0.8, y = 0.4, label = paste(setdiff(gene_list2, intersect_12), collapse = ", "), size = 4)     # gene_list3 excluding intersect_12
+```
 
 
 
@@ -1513,9 +1824,7 @@ plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 
 
 
-
-
-Day 50 Venn P0.05
+Day 50 Venn Padj0.01
 ```{r}
 library(ggVennDiagram)
 
@@ -1544,7 +1853,7 @@ dev.off()
 ```
 
 
-Day 30 Venn P0.05
+Day 30 Venn Padj0.01
 ```{r}
 library(ggVennDiagram)
 
