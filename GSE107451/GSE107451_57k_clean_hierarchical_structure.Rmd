@@ -699,7 +699,7 @@ plot_selected_clusters_age_ratio_heatmap <- function(df, genes, genotype, sex, y
 
 ```
 
-### 3.1.1 Plot only for specific genes and cell types
+### 3.2.1 Plot only for specific genes and cell types
 
 ```{r}
 # all brain IMs in female DGRP-551
