@@ -1620,6 +1620,7 @@ plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
 ```
 fold change plot of all brain IMs in female and male DGRP-551
 ```{r}
+############### Brain IMs #################
 # all brain IMs in female DGRP-551
 plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
                        genes=unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50)),
@@ -1635,6 +1636,46 @@ plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
                        sex="male",
                        young_age="3",
                        old_age="50")
+
+##################### WB IMs ##############
+
+# WB IMs in female DGRP-551
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(c(III_Marker_Genes)),
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="50")
+
+# WB IMs in male DGRP-551
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(c(III_Marker_Genes)),
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="50")
+
+
+##################### Brain IMs + WB IMs #######################
+# all brain IMs and WB IMs in female DGRP-551
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50,III_Marker_Genes)),
+                       genotype="DGRP-551",
+                       sex="female",
+                       young_age="3",
+                       old_age="50")
+
+# all brain IMs and WB IMs in male DGRP-551
+plot_age_ratio_heatmap(df=TPM_HEAD_Genotype_Sex_Age_Cluster,
+                       genes=unique(c(female_target_ImmuneGenes_50,male_target_ImmuneGenes_50,III_Marker_Genes)),
+                       genotype="DGRP-551",
+                       sex="male",
+                       young_age="3",
+                       old_age="50")
+
+
+
+
 ```
 fold change day 50/ day 3 TPM plot of all immune genes
 ```{r}
